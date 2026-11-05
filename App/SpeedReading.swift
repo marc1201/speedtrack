@@ -50,12 +50,20 @@ struct SpeedReading: Equatable {
     static let unknown = SpeedReading(rawSpeed: -1, measuredAt: .distantPast)
     /// Seconds after which a sample no longer says how fast the device is moving.
     static let maximumAge: TimeInterval = 5
+    /// Metres per second below which a device lying still counts as stopped: GPS speed drifts at a
+    /// standstill. Anything faster is real, because a phone on a smooth train feels no more
+    /// acceleration than one on a table.
+    static let standstillSpeed = 1.0
 
     let metersPerSecond: Double?
     let measuredAt: Date
 
-    init(rawSpeed: Double, measuredAt: Date) {
-        metersPerSecond = rawSpeed.isFinite && rawSpeed >= 0 ? rawSpeed : nil
+    init(rawSpeed: Double, measuredAt: Date, deviceIsStill: Bool = false) {
+        if rawSpeed.isFinite, rawSpeed >= 0 {
+            metersPerSecond = deviceIsStill && rawSpeed < Self.standstillSpeed ? 0 : rawSpeed
+        } else {
+            metersPerSecond = nil
+        }
         self.measuredAt = measuredAt
     }
 

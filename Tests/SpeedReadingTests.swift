@@ -74,6 +74,25 @@ final class SpeedReadingTests: XCTestCase {
         XCTAssertEqual(label(0.1, .minutesPerMile), "--")
     }
 
+    func testLowSpeedOnAStillDeviceIsZero() {
+        let reading = SpeedReading(rawSpeed: 0.6, measuredAt: now, deviceIsStill: true)
+        XCTAssertEqual(reading.label(in: .metersPerSecond, at: now), "0.0")
+    }
+
+    func testLowSpeedOnAMovingDeviceIsKept() {
+        XCTAssertEqual(label(0.6, .metersPerSecond), "0.6")
+    }
+
+    func testRealSpeedOnAStillDeviceIsKept() {
+        let reading = SpeedReading(rawSpeed: 30, measuredAt: now, deviceIsStill: true)
+        XCTAssertEqual(reading.label(in: .kilometersPerHour, at: now), "108")
+    }
+
+    func testStillnessNeverInventsASpeed() {
+        let reading = SpeedReading(rawSpeed: -1, measuredAt: now, deviceIsStill: true)
+        XCTAssertEqual(reading.label(in: .kilometersPerHour, at: now), "--")
+    }
+
     func testEveryUnitHasItsOwnTitle() {
         let titles = Set(SpeedUnit.allCases.map(\.title))
         XCTAssertEqual(titles, ["km/h", "m/s", "mph", "min/km", "min/mi"])

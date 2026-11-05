@@ -1,6 +1,7 @@
 # Speedtrack
 
-A small native iOS app that shows how fast the device is moving, using SwiftUI and CoreLocation.
+A small native iOS app that shows how fast the device is moving, using SwiftUI, CoreLocation and
+CoreMotion.
 
 ## Build
 

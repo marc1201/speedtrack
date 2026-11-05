@@ -6,11 +6,12 @@ a new project starts on the VPS. Keep it small.
 
 ## Stack
 
-- Swift, SwiftUI and CoreLocation. iPhone only, iOS 17 or later. No third-party dependencies.
+- Swift, SwiftUI, CoreLocation and CoreMotion. iPhone only, iOS 17 or later. No third-party
+  dependencies.
 - `project.yml` (XcodeGen) is the source of the Xcode project. `*.xcodeproj` is generated and never
   committed. Add files under `App/` or `Tests/`; XcodeGen picks them up.
-- `SpeedReading` holds the pure logic and is unit-tested. `SpeedMonitor` wraps CoreLocation.
-  `ContentView` shows the number.
+- `SpeedReading` and `StillnessDetector` hold the pure logic and are unit-tested. `SpeedMonitor`
+  wraps CoreLocation and CoreMotion. `ContentView` shows the number.
 
 ## There is no Xcode here
 
@@ -92,6 +93,6 @@ change looks small or urgent is not an option.
 
 ## Status
 
-The app compiles and its three unit tests pass on Actions. The scaffold went in without the three
+The app compiles and its unit tests pass on Actions. The scaffold went in without the three
 gates, so they run on it first. TestFlight is not set up: `ci/testflight.sh` and the workflow's
 `testflight` job predate the deployment rules above and must be replaced before their first use.

@@ -1,12 +1,15 @@
 import CoreLocation
+import CoreMotion
 import Foundation
 
-/// Follows the device's location and publishes the current speed.
+/// Follows the device's location and motion and publishes the current speed.
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var reading = SpeedReading.unknown
     @Published private(set) var authorization: CLAuthorizationStatus = .notDetermined
 
     private let manager = CLLocationManager()
+    private let motion = CMMotionManager()
+    private var stillness = StillnessDetector()
 
     override init() {
         super.init()
@@ -16,6 +19,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         // A pause while standing still would turn a true 0 into "--".
         manager.pausesLocationUpdatesAutomatically = false
         authorization = manager.authorizationStatus
+        motion.deviceMotionUpdateInterval = 0.1
     }
 
     func start() {
@@ -23,10 +27,17 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
             manager.requestWhenInUseAuthorization()
         }
         manager.startUpdatingLocation()
+        guard motion.isDeviceMotionAvailable else { return }
+        motion.startDeviceMotionUpdates(to: .main) { [weak self] sample, _ in
+            guard let self, let acceleration = sample?.userAcceleration else { return }
+            self.stillness.record(x: acceleration.x, y: acceleration.y, z: acceleration.z, at: .now)
+        }
     }
 
     func stop() {
         manager.stopUpdatingLocation()
+        motion.stopDeviceMotionUpdates()
+        stillness = StillnessDetector()
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -41,7 +52,11 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let latest = locations.last else { return }
-        reading = SpeedReading(rawSpeed: latest.speed, measuredAt: latest.timestamp)
+        reading = SpeedReading(
+            rawSpeed: latest.speed,
+            measuredAt: latest.timestamp,
+            deviceIsStill: stillness.isStill(at: latest.timestamp)
+        )
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
