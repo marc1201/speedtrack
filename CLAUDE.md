@@ -50,6 +50,6 @@ A change to `ci/`, `ci_scripts/`, `SpeedTrack.xcodeproj`, signing, permissions, 
 
 ## Status
 
-The app compiles and its unit tests pass on Actions. The scaffold went in without the three
-gates, so they run on it first. TestFlight is not set up: `ci/testflight.sh` and the workflow's
-`testflight` job predate the shared deployment rules and must be replaced before their first use.
+The first version is on main and passed the three gates. It compiles and its unit tests pass on
+Actions, but it has never run on a real phone. TestFlight is not set up: the workflow's `testflight`
+job predates the shared deployment rules, and removing it is waiting on Marc.
