@@ -47,16 +47,22 @@ enum SpeedUnit: String, CaseIterable, Identifiable {
 /// is unknown.
 struct SpeedReading: Equatable {
     static let unknownLabel = "--"
-    static let unknown = SpeedReading(rawSpeed: -1)
+    static let unknown = SpeedReading(rawSpeed: -1, measuredAt: .distantPast)
+    /// Seconds after which a sample no longer says how fast the device is moving.
+    static let maximumAge: TimeInterval = 5
 
     let metersPerSecond: Double?
+    let measuredAt: Date
 
-    init(rawSpeed: Double) {
+    init(rawSpeed: Double, measuredAt: Date) {
         metersPerSecond = rawSpeed.isFinite && rawSpeed >= 0 ? rawSpeed : nil
+        self.measuredAt = measuredAt
     }
 
-    func label(in unit: SpeedUnit) -> String {
-        guard let metersPerSecond else { return Self.unknownLabel }
+    func label(in unit: SpeedUnit, at now: Date) -> String {
+        guard let metersPerSecond, now.timeIntervalSince(measuredAt) <= Self.maximumAge else {
+            return Self.unknownLabel
+        }
         return unit.label(metersPerSecond: metersPerSecond)
     }
 }

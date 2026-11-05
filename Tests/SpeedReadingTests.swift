@@ -2,8 +2,10 @@ import XCTest
 @testable import SpeedTrack
 
 final class SpeedReadingTests: XCTestCase {
+    private let now = Date(timeIntervalSinceReferenceDate: 1_000)
+
     private func label(_ speed: Double, _ unit: SpeedUnit) -> String {
-        SpeedReading(rawSpeed: speed).label(in: unit)
+        SpeedReading(rawSpeed: speed, measuredAt: now).label(in: unit, at: now)
     }
 
     func testNegativeSpeedIsUnknownInEveryUnit() {
@@ -18,7 +20,17 @@ final class SpeedReadingTests: XCTestCase {
     }
 
     func testTheNamedUnknownReadingShowsNothing() {
-        XCTAssertEqual(SpeedReading.unknown.label(in: .kilometersPerHour), "--")
+        XCTAssertEqual(SpeedReading.unknown.label(in: .kilometersPerHour, at: now), "--")
+    }
+
+    func testAReadingIsCurrentForFiveSeconds() {
+        let reading = SpeedReading(rawSpeed: 10, measuredAt: now)
+        XCTAssertEqual(reading.label(in: .kilometersPerHour, at: now.addingTimeInterval(5)), "36")
+    }
+
+    func testAnOlderReadingIsNoLongerShown() {
+        let reading = SpeedReading(rawSpeed: 10, measuredAt: now)
+        XCTAssertEqual(reading.label(in: .kilometersPerHour, at: now.addingTimeInterval(5.1)), "--")
     }
 
     func testZeroIsAValidSpeed() {

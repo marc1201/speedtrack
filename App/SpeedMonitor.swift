@@ -13,6 +13,8 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         manager.activityType = .otherNavigation
+        // A pause while standing still would turn a true 0 into "--".
+        manager.pausesLocationUpdatesAutomatically = false
         authorization = manager.authorizationStatus
     }
 
@@ -39,7 +41,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let latest = locations.last else { return }
-        reading = SpeedReading(rawSpeed: latest.speed)
+        reading = SpeedReading(rawSpeed: latest.speed, measuredAt: latest.timestamp)
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

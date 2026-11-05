@@ -11,11 +11,14 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text(monitor.reading.label(in: unit))
-                .font(.system(size: 120, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
+            // Redrawn every second, so a reading that stops updating turns into "--".
+            TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                Text(monitor.reading.label(in: unit, at: timeline.date))
+                    .font(.system(size: 120, weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+            }
             Text(unit.title)
                 .font(.title2)
                 .foregroundStyle(.secondary)
