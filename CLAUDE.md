@@ -11,8 +11,8 @@ project.
 
 - Swift, SwiftUI, CoreLocation and CoreMotion. iPhone only, iOS 17 or later. No third-party
   dependencies.
-- `project.yml` (XcodeGen) is the source of the Xcode project. `*.xcodeproj` is generated and never
-  committed. Add files under `App/` or `Tests/`; XcodeGen picks them up.
+- `SpeedTrack.xcodeproj` is committed and is the one source of project settings, edited by hand
+  because there is no Xcode here. Its synced folders pick up new files under `App/` and `Tests/`.
 - `SpeedReading` and `StillnessDetector` hold the pure logic and are unit-tested. `SpeedMonitor`
   wraps CoreLocation and CoreMotion. `ContentView` shows the number.
 
@@ -40,13 +40,13 @@ starts a build.
 
 ## How we develop here
 
-A change to `ci/`, signing, permissions, entitlements or `Info.plist` gets `security-reviewer` before
-the push.
+A change to `ci/`, `ci_scripts/`, `SpeedTrack.xcodeproj`, signing, permissions, entitlements or
+`Info.plist` gets `security-reviewer` before the push.
 
 ## Identity
 
 - Bundle id `vc.1201.speedtrack`. It is permanent once it is registered with Apple.
-- `MARKETING_VERSION` is in `project.yml`. The build number is the Actions run number.
+- `MARKETING_VERSION` is in the Xcode project, in the project-level Debug and Release settings. The build number is the Actions run number.
 
 ## Status
 

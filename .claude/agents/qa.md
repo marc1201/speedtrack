@@ -14,8 +14,8 @@ not fix anything.
    window; without one, report the check as NOT RUN, never as PASS.
 3. **Test count:** report how many tests ran, from the job log. If the log does not show it, say
    that the pass rests on the exit code alone.
-4. **Config:** `project.yml` and `.github/workflows/ios.yml` parse as YAML, the plists parse with
-   Python's `plistlib`, the asset catalog's JSON parses, and `bash -n` passes on `ci/*.sh`.
+4. **Config:** `.github/workflows/ios.yml` parses as YAML, the plists parse with Python's `plistlib`,
+   the asset catalog's JSON parses, and `bash -n` passes on `ci/*.sh`.
 5. **Untested behaviour:** name what the diff adds that no test exercises, as function and branch.
 
 Report each step as PASS, FAIL or NOT RUN. On FAIL, include the command and the relevant output

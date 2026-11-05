@@ -4,8 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 xcodebuild -version
-command -v xcodegen >/dev/null || brew install xcodegen
-xcodegen generate --quiet
+
 
 simulator="$(ci/pick-simulator.sh)"
 results="${RUNNER_TEMP:?}/SpeedTrack.xcresult"

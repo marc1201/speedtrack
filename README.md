@@ -5,13 +5,8 @@ CoreMotion.
 
 ## Build
 
-The Xcode project is generated from `project.yml`:
-
-    brew install xcodegen
-    xcodegen generate
-    open SpeedTrack.xcodeproj
-
-Every push to main compiles the app and runs its tests on GitHub Actions.
+Open `SpeedTrack.xcodeproj` in Xcode 16 or later. Every push to main compiles the app and runs its
+tests on GitHub Actions.
 
 ## TestFlight
 

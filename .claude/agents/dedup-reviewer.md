@@ -11,7 +11,7 @@ Look for:
 - 5+ line blocks duplicated across files.
 - Speed conversion or formatting living outside `SpeedReading`.
 - CoreLocation calls living outside `SpeedMonitor`.
-- Project settings outside `project.yml`, or anything that edits the generated Xcode project.
+- Project settings outside `SpeedTrack.xcodeproj`.
 - CI logic in the workflow file instead of `ci/*.sh`, and steps repeated between the scripts.
 
 Guardrails:
