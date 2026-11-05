@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var monitor = SpeedMonitor()
     @AppStorage("speedUnit") private var unit: SpeedUnit = .kilometersPerHour
+    @Environment(\.scenePhase) private var scenePhase
 
     private var accessDenied: Bool {
         monitor.authorization == .denied || monitor.authorization == .restricted
@@ -38,7 +39,14 @@ struct ContentView: View {
             }
         }
         .padding()
-        .onAppear { monitor.start() }
-        .onDisappear { monitor.stop() }
+        .onChange(of: scenePhase, initial: true) { _, phase in
+            let onScreen = phase == .active
+            UIApplication.shared.isIdleTimerDisabled = onScreen
+            if onScreen {
+                monitor.start()
+            } else {
+                monitor.stop()
+            }
+        }
     }
 }
