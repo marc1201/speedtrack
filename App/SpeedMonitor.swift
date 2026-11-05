@@ -3,7 +3,7 @@ import Foundation
 
 /// Follows the device's location and publishes the current speed.
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published private(set) var reading = SpeedReading(rawSpeed: -1)
+    @Published private(set) var reading = SpeedReading.unknown
     @Published private(set) var authorization: CLAuthorizationStatus = .notDetermined
 
     private let manager = CLLocationManager()
@@ -33,7 +33,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         case .authorizedWhenInUse, .authorizedAlways:
             manager.startUpdatingLocation()
         default:
-            reading = SpeedReading(rawSpeed: -1)
+            reading = .unknown
         }
     }
 
@@ -43,6 +43,6 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        reading = SpeedReading(rawSpeed: -1)
+        reading = .unknown
     }
 }
