@@ -23,7 +23,9 @@ This checkout lives on a Linux VPS, where nothing Apple compiles. GitHub Actions
    `gh-runs runs`, `gh-runs jobs` and `gh-runs log` go deeper.
 
 Read the Swift carefully before pushing: each push is one compile and takes minutes. Bundle
-several changes into one push.
+several changes into one push. `ci/local-check.sh` runs on the box in about a minute, with the Linux
+Swift toolchain in `~/.local/share/swift`: it parses every Swift file and runs the tests of the pure
+logic. It cannot see SwiftUI, CoreLocation or CoreMotion, so Actions stays the compiler that counts.
 
 ## Rules of the box
 
