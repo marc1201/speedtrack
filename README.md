@@ -5,8 +5,8 @@ CoreMotion.
 
 ## Build
 
-Open `SpeedTrack.xcodeproj` in Xcode 16 or later. Every push to main compiles the app and runs its
-tests on GitHub Actions.
+Open `SpeedTrack.xcodeproj` in Xcode 16 or later. Every push to main compiles the app, runs its
+tests and archives the Release device build on GitHub Actions.
 
 ## TestFlight
 
