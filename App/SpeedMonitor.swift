@@ -10,6 +10,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     private let manager = CLLocationManager()
     private let motion = CMMotionManager()
     private var stillness = StillnessDetector()
+    private var isFollowing = false
 
     override init() {
         super.init()
@@ -23,6 +24,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
 
     func start() {
+        isFollowing = true
         if manager.authorizationStatus == .notDetermined {
             manager.requestWhenInUseAuthorization()
         }
@@ -35,6 +37,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     }
 
     func stop() {
+        isFollowing = false
         manager.stopUpdatingLocation()
         motion.stopDeviceMotionUpdates()
         stillness = StillnessDetector()
@@ -44,7 +47,10 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         authorization = manager.authorizationStatus
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            manager.startUpdatingLocation()
+            // This also fires while the app is off screen, and start() is what decides.
+            if isFollowing {
+                manager.startUpdatingLocation()
+            }
         default:
             reading = .unknown
         }
