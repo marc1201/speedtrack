@@ -10,7 +10,5 @@ tests and archives the Release device build on GitHub Actions.
 
 ## TestFlight
 
-1. In Certificates, Identifiers & Profiles, register the App ID `vc.1201.speedtrack`.
-2. In App Store Connect, under Apps, create a new iOS app with that bundle id.
-
-Signing and upload are still being settled. The route must not use an Admin-role API key.
+Xcode Cloud builds, signs and uploads, with no key on our side. A commit to `main` that changes
+`release/testflight` starts a release. `CLAUDE.md` has the details.
