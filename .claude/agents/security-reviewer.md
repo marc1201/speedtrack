@@ -16,9 +16,11 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    one. `.p8`, `.p12` and provisioning profiles never enter git.
 3. **The deployment boundary.** A deploy runs from Actions with no human step per release, and
    nothing deploys from the Mac or the VPS. Repository code never runs next to a credential, because
-   the VPS token can change that code. Flag a job that holds a secret and also runs repository
-   scripts, Xcode build phases or an unpinned third-party tool, `permissions:` wider than
-   `contents: read`, and a deploy that an ordinary compile push can start.
+   the VPS token can change that code. Check every job that holds a secret against each point of
+   "A job that holds a credential" in `~/.claude/CLAUDE.md`, and flag any point it misses. Flag
+   `permissions:` wider than the job needs, and a deploy that an ordinary compile push can start.
+   Flag any script phase, build rule, external target or `ci_scripts/` file: they run where Apple
+   signs, and Xcode can run a script phase in the background while it indexes the project.
 4. **Location privacy.** Location is used only while the app is in use. No background mode, no
    `Always` authorization. Location data is not stored, logged or sent off the device. The usage
    string says what the app really does.

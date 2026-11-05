@@ -30,7 +30,8 @@ several changes into one push. `ci/local-check.sh` runs on the box in about a mi
 Swift toolchain in `~/.local/share/swift`: it parses every Swift file and runs the tests of the pure
 logic. It cannot see SwiftUI, CoreLocation or CoreMotion, so Actions stays the compiler that counts.
 
-Keep logic in `ci/*.sh`, because a workflow file cannot be pushed from here.
+Keep logic in `ci/*.sh`, because a workflow file cannot be pushed from here. The one exception is a
+job that holds a credential, whose steps stay inline in the workflow file.
 
 ## How deployment works here
 

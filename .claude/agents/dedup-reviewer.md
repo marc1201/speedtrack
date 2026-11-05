@@ -18,5 +18,7 @@ Guardrails:
 - "Three similar lines is better than a premature abstraction" — don't over-DRY.
 - Never touch signing, key handling or workflow triggers to "simplify" them; defer those to the
   security-reviewer.
+- Steps inline in a workflow job that holds a credential are deliberate. Never move them into a
+  script.
 
 Output: the extractions you made (file:line), and any duplication you intentionally left and why.
