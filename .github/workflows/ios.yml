@@ -1,0 +1,39 @@
+# A thin wrapper: the logic lives in ci/*.sh, which can change without touching this file
+# (workflow files cannot be pushed from the VPS).
+name: ios
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    if: github.event_name == 'push'
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/build-test.sh
+
+  # Only by a person's click (Actions -> ios -> Run workflow): the push token on the VPS can push
+  # code and tags but cannot dispatch a workflow, so it never gets code running next to these secrets.
+  testflight:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/testflight.sh
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
