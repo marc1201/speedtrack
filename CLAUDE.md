@@ -31,10 +31,40 @@ several changes into one push.
   Marc as a request.
 - Secrets never live on the VPS. The App Store Connect key exists only as a GitHub repository
   secret, and `ci/testflight.sh` reads it from the environment.
+- No App Store Connect key with the Admin role, in any form: not in GitHub, not temporarily, not as
+  a one-shot key. Credentials are least privilege. A wider role is Marc's decision, never a default.
 - TestFlight builds start only by Marc's click (Actions, ios, Run workflow). Do not add a push or
   tag trigger: the VPS token could then run its own code next to the key.
 - A heavy local job runs capped, or it can freeze the whole box for every project:
   `systemd-run --user --scope -p MemoryMax=2G -p MemorySwapMax=0 -- <command>`
+
+## How we develop here
+
+Speedtrack is small, but it follows the same process as every 1201 project. Skipping it because a
+change looks small or urgent is not an option.
+
+1. One concern at a time, in a commit whose message says why.
+2. The three reviewers in `.claude/agents/` run before work is called done and before any build
+   goes to TestFlight, never afterwards:
+   - `dedup-reviewer` when a change adds or moves shared code. It runs first, so the others see
+     the final diff.
+   - `qa` on every change, against the Actions run of that exact commit.
+   - `security-reviewer` on every change, with no bundling. A change to `ci/`, signing, permissions,
+     entitlements or `Info.plist` gets it before the push.
+3. Judge every finding yourself and fix what is real. A security blocker stops the work until it
+   is fixed. Run the gate again on the fixes, and report anything you left and why.
+4. Size the gate to the change: agents where they help, never a crowd on the same few lines.
+
+## Working with Marc
+
+- Decide what you can with a safe default, state the default, and build it. Ask only what is
+  truly his to decide.
+- Automate his steps. What must stay his, such as root or a vendor console, goes into one message
+  at the end, with the exact lines and the expected result. No chains of "run this, paste that".
+- Never ask him to paste something you can read yourself.
+- What he says about his own accounts and data is fact. If a tool disagrees, suspect the tool.
+- When he reports a failure, answer with the fix.
+- Anything that widens a credential or a permission is his decision. Bring one recommendation.
 
 ## Identity
 
@@ -43,5 +73,6 @@ several changes into one push.
 
 ## Status
 
-The scaffold has never been compiled: the first Actions run is its first compile. Start there,
-make the run green, then build the features Marc asks for.
+The app compiles and its three unit tests pass on Actions. The scaffold went in without the three
+gates, so they run on it first. TestFlight is not set up: `ci/testflight.sh` was scaffolded around
+cloud signing, which developers report needs an Admin key, so it must change before its first use.

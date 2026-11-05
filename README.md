@@ -12,13 +12,9 @@ The Xcode project is generated from `project.yml`:
 
 Every push to main compiles the app and runs its tests on GitHub Actions.
 
-## TestFlight, set up once
+## TestFlight
 
 1. In Certificates, Identifiers & Profiles, register the App ID `vc.1201.speedtrack`.
 2. In App Store Connect, under Apps, create a new iOS app with that bundle id.
-3. In App Store Connect, under Users and Access, then Integrations, generate a team API key with
-   the Admin role and download the `.p8` file.
-4. In this repository's Actions settings, add the secrets `ASC_KEY_ID`, `ASC_ISSUER_ID` and
-   `ASC_KEY_P8` (the file's contents), and the variable `APPLE_TEAM_ID`.
 
-Then Actions, ios, Run workflow builds, signs and uploads one build.
+Signing and upload are still being settled. The route must not use an Admin-role API key.
