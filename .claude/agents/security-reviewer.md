@@ -14,10 +14,11 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
 2. **Secret hygiene.** No secret may reach the repository, the VPS, stdout, stderr, argv or a log.
    Check for `set -x` near a secret, a key file left on the runner, and new files that could hold
    one. `.p8`, `.p12` and provisioning profiles never enter git.
-3. **The CI boundary.** Secrets reach only a job that a person starts by hand. Flag any push, tag,
-   pull request or schedule trigger that reaches a secret, `permissions:` wider than
-   `contents: read`, and a new third-party action or tool in a job that carries a secret. Name what
-   repository code runs next to a secret, because the VPS token can change that code.
+3. **The deployment boundary.** A deploy runs from Actions with no human step per release, and
+   nothing deploys from the Mac or the VPS. Repository code never runs next to a credential, because
+   the VPS token can change that code. Flag a job that holds a secret and also runs repository
+   scripts, Xcode build phases or an unpinned third-party tool, `permissions:` wider than
+   `contents: read`, and a deploy that an ordinary compile push can start.
 4. **Location privacy.** Location is used only while the app is in use. No background mode, no
    `Always` authorization. Location data is not stored, logged or sent off the device. The usage
    string says what the app really does.

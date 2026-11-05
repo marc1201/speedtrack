@@ -29,14 +29,33 @@ several changes into one push.
 - Workflow files cannot be pushed from the VPS: the push token has no `workflows` permission, by
   design. Keep logic in `ci/*.sh`, which can be pushed. A change to `.github/workflows/` goes to
   Marc as a request.
-- Secrets never live on the VPS. The App Store Connect key exists only as a GitHub repository
-  secret, and `ci/testflight.sh` reads it from the environment.
-- No App Store Connect key with the Admin role, in any form: not in GitHub, not temporarily, not as
-  a one-shot key. Credentials are least privilege. A wider role is Marc's decision, never a default.
-- TestFlight builds start only by Marc's click (Actions, ios, Run workflow). Do not add a push or
-  tag trigger: the VPS token could then run its own code next to the key.
 - A heavy local job runs capped, or it can freeze the whole box for every project:
   `systemd-run --user --scope -p MemoryMax=2G -p MemorySwapMax=0 -- <command>`
+
+## How deployment works here
+
+Every 1201 project deploys the same way, and this one is no exception. PawOS is the working
+example: a push to main, and GitHub Actions does the rest.
+
+- **An open window is the only human step.** A design that needs Marc per release is wrong: no
+  click per build, no key revoked after each run, no manual upload.
+- **Nothing deploys from the Mac or the VPS.** Not as a fallback, not once. Neither machine holds a
+  deploy credential or runs a release step. One-time setup may touch a vendor console or the Mac;
+  a release never does.
+- **At most one credential, set once.** No credential at all is better. If one is needed, it lives
+  only as a repository secret with the narrowest role that works. Never an App Store Connect key
+  with the Admin role, in any form: not in GitHub, not temporarily, not as a one-shot key. A wider
+  role is Marc's decision, never a default.
+- **Repository code never runs next to a credential,** because the VPS token can change that code.
+  Either no credential exists, or the job holding it runs no repository code. A route that cannot
+  do this goes to Marc as a trade-off. It does not get a click added instead.
+- **Marc's part is one-time setup,** sent as one message with exact steps. After that he does
+  nothing per release.
+- **A red deploy is yours.** Read it with `gh-runs`, fix it and push again. Marc gets the result,
+  not fix commands.
+
+Here a deploy is a TestFlight build. Compile pushes must not deploy, so a release is a deliberate
+commit, made after the gates are green, and only that commit starts a build.
 
 ## How we develop here
 
@@ -74,5 +93,5 @@ change looks small or urgent is not an option.
 ## Status
 
 The app compiles and its three unit tests pass on Actions. The scaffold went in without the three
-gates, so they run on it first. TestFlight is not set up: `ci/testflight.sh` was scaffolded around
-cloud signing, which developers report needs an Admin key, so it must change before its first use.
+gates, so they run on it first. TestFlight is not set up: `ci/testflight.sh` and the workflow's
+`testflight` job predate the deployment rules above and must be replaced before their first use.
