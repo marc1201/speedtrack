@@ -50,6 +50,9 @@ struct SpeedReading: Equatable {
     static let unknown = SpeedReading(rawSpeed: -1, measuredAt: .distantPast)
     /// Seconds after which a sample no longer says how fast the device is moving.
     static let maximumAge: TimeInterval = 5
+    /// Seconds after which a sample no longer says where the device is. This is a judgement, not
+    /// an Apple figure: Core Location promises no rate, and fixes can come far apart indoors.
+    static let locationMaximumAge: TimeInterval = 30
     /// Metres per second below which a device lying still counts as stopped: GPS speed drifts at a
     /// standstill. Anything faster is real, because a phone on a smooth train feels no more
     /// acceleration than one on a table.
@@ -67,10 +70,16 @@ struct SpeedReading: Equatable {
         self.measuredAt = measuredAt
     }
 
+    func currentSpeed(at now: Date) -> Double? {
+        now.timeIntervalSince(measuredAt) <= Self.maximumAge ? metersPerSecond : nil
+    }
+
+    func hasLocation(at now: Date) -> Bool {
+        now.timeIntervalSince(measuredAt) <= Self.locationMaximumAge
+    }
+
     func label(in unit: SpeedUnit, at now: Date) -> String {
-        guard let metersPerSecond, now.timeIntervalSince(measuredAt) <= Self.maximumAge else {
-            return Self.unknownLabel
-        }
-        return unit.label(metersPerSecond: metersPerSecond)
+        guard let speed = currentSpeed(at: now) else { return Self.unknownLabel }
+        return unit.label(metersPerSecond: speed)
     }
 }

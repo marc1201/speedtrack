@@ -13,8 +13,9 @@ project.
   dependencies.
 - `SpeedTrack.xcodeproj` is committed and is the one source of project settings, edited by hand
   because there is no Xcode here. Its synced folders pick up new files under `App/` and `Tests/`.
-- `SpeedReading` and `StillnessDetector` hold the pure logic and are unit-tested. `SpeedMonitor`
-  wraps CoreLocation and CoreMotion. `ContentView` shows the number.
+- `SpeedReading`, `LocationAccess` and `StillnessDetector` hold the pure logic and are unit-tested.
+  `SpeedMonitor` wraps CoreLocation and CoreMotion. `ContentView` shows the number and the status
+  line.
 
 ## There is no Xcode here
 

@@ -16,7 +16,7 @@ done
 package="$(mktemp -d)"
 trap 'rm -rf "$package"' EXIT
 mkdir -p "$package/Sources/SpeedTrack" "$package/Tests/SpeedTrackTests"
-cp App/SpeedReading.swift App/StillnessDetector.swift "$package/Sources/SpeedTrack/"
+cp App/LocationAccess.swift App/SpeedReading.swift App/StillnessDetector.swift "$package/Sources/SpeedTrack/"
 cp Tests/*.swift "$package/Tests/SpeedTrackTests/"
 cat > "$package/Package.swift" <<'EOF'
 // swift-tools-version:5.10

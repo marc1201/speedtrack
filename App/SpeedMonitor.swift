@@ -5,7 +5,7 @@ import Foundation
 /// Follows the device's location and motion and publishes the current speed.
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var reading = SpeedReading.unknown
-    @Published private(set) var authorization: CLAuthorizationStatus = .notDetermined
+    @Published private(set) var access = LocationAccess.undecided
 
     private let manager = CLLocationManager()
     private let motion = CMMotionManager()
@@ -19,16 +19,14 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         manager.activityType = .otherNavigation
         // A pause while standing still would turn a true 0 into "--".
         manager.pausesLocationUpdatesAutomatically = false
-        authorization = manager.authorizationStatus
+        refreshAccess()
         motion.deviceMotionUpdateInterval = 0.1
     }
 
     func start() {
         isFollowing = true
-        if manager.authorizationStatus == .notDetermined {
-            manager.requestWhenInUseAuthorization()
-        }
-        manager.startUpdatingLocation()
+        refreshAccess()
+        follow()
         guard motion.isDeviceMotionAvailable else { return }
         motion.startDeviceMotionUpdates(to: .main) { [weak self] sample, _ in
             guard let self, let acceleration = sample?.userAcceleration else { return }
@@ -43,21 +41,21 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         stillness = StillnessDetector()
     }
 
+    /// Fires when Precise Location changes too, when authorizationStatus stays the same.
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-        authorization = manager.authorizationStatus
-        switch manager.authorizationStatus {
-        case .authorizedWhenInUse, .authorizedAlways:
-            // This also fires while the app is off screen, and start() is what decides.
-            if isFollowing {
-                manager.startUpdatingLocation()
-            }
-        default:
+        refreshAccess()
+        if access != .precise && access != .approximate {
             reading = .unknown
+        }
+        // This also fires while the app is off screen, and start() is what decides.
+        if isFollowing {
+            follow()
         }
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let latest = locations.last else { return }
+        // A negative accuracy marks invalid coordinates, and 0 is not expected either.
+        guard let latest = locations.last, latest.horizontalAccuracy > 0 else { return }
         reading = SpeedReading(
             rawSpeed: latest.speed,
             measuredAt: latest.timestamp,
@@ -65,7 +63,33 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         )
     }
 
-    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        reading = .unknown
+    /// Core Location requires this method, but no error needs an answer here. A real denial also
+    /// changes the permission, and after anything else the reading ages out if no fix follows.
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
+
+    private func refreshAccess() {
+        switch manager.authorizationStatus {
+        case .notDetermined:
+            access = .undecided
+        case .restricted:
+            access = .restricted
+        case .authorizedWhenInUse, .authorizedAlways:
+            access = manager.accuracyAuthorization == .fullAccuracy ? .precise : .approximate
+        default:
+            access = .denied
+        }
+    }
+
+    /// Does what the current permission calls for. Starting updates while denied can make iOS
+    /// prompt the user, and start() runs on every return to the screen.
+    private func follow() {
+        switch access {
+        case .undecided:
+            manager.requestWhenInUseAuthorization()
+        case .approximate, .precise:
+            manager.startUpdatingLocation()
+        case .denied, .restricted:
+            manager.stopUpdatingLocation()
+        }
     }
 }
