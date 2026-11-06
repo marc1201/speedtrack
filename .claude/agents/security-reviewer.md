@@ -17,8 +17,8 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
 3. **The deployment boundary.** A deploy runs on Xcode Cloud, as Marc decided in `~/.claude/CLAUDE.md`,
    with no human step per release, and nothing deploys from the Mac or the VPS. Repository code
    never runs next to a credential, because the VPS token can change that code. Actions holds no
-   secret: any `secrets.` reference in a workflow is HIGH, including the old `testflight` job until
-   Marc removes it. Any credential, token or auth header in `ci/release-status.py` is HIGH. Check
+   secret: any `secrets.` reference in a workflow is HIGH. Any credential, token or auth header in
+   `ci/release-status.py` is HIGH. Check
    every job that holds a secret against each point of "A job that holds a credential" in
    `~/.claude/CLAUDE.md`, and flag any point it misses. Flag `permissions:` wider than the job
    needs, and a deploy that an ordinary compile push can start,
