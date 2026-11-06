@@ -74,8 +74,7 @@ A change to `ci/`, `ci_scripts/`, `SpeedTrack.xcodeproj`, signing, permissions, 
 
 ## Status
 
-The first version is on main and passed the three gates. It compiles and its unit tests pass on
-Actions, but it has never run on a real phone. Marc's one-time TestFlight setup is done. Xcode Cloud
-has built once, started by hand with a Build action, so nothing has been signed yet. Before the
-first release, one ordinary push must show no Xcode Cloud status, because nothing else tests the
-start condition.
+Version 0.1.0 reached Marc's iPhone through TestFlight on 2026-11-06 with no click, about 8 minutes
+from the release commit to the invite, and ordinary pushes start no build. While a build is still
+processing, its Groups list reads 0 and the commit status stays pending, so never add it by hand.
+The app has only run indoors so far, so the speed itself is untested on a phone.
