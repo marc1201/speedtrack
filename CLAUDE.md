@@ -40,8 +40,10 @@ Here a deploy is a TestFlight build, and Xcode Cloud ships it, by Marc's decisio
 Apple builds, signs and uploads on its side. Actions only compiles and must hold no secret, and
 `ci/release-status.py` must use no credential.
 
-- **A release:** compile pushes must not deploy, so a release is a deliberate commit. With HEAD pushed
-  and its gates green, write HEAD's hash to `release/testflight`, commit only that file as
+- **A release:** compile pushes must not deploy, so a release is a deliberate commit. Every release
+  shows a new version, by Marc's word of 2026-11-07: first raise the last number of
+  `MARKETING_VERSION` by one, in an ordinary commit that goes through the gates. With HEAD pushed and
+  its gates green, write HEAD's hash to `release/testflight`, commit only that file as
   `Release <MARKETING_VERSION> to TestFlight`, and push that commit alone. Xcode Cloud does not wait
   for Actions: any change under `release/` on `main` deploys at once.
 - **The result:** run `ci/release-status.py` every 5 minutes. It needs no token and no window. Exit 0
