@@ -10,8 +10,10 @@ struct ContentView: View {
             // Redrawn every second, so a reading that stops updating turns into "--".
             TimelineView(.periodic(from: .now, by: 1)) { timeline in
                 VStack(spacing: 8) {
+                    // The speed is all the app shows, so it may take the whole width. A label too wide
+                    // for it, such as a pace, shrinks to fit.
                     Text(monitor.reading.label(in: unit, at: timeline.date))
-                        .font(.system(size: 120, weight: .bold, design: .rounded))
+                        .font(.system(size: 200, weight: .bold, design: .rounded))
                         .monospacedDigit()
                         .minimumScaleFactor(0.5)
                         .lineLimit(1)
