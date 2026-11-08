@@ -32,6 +32,12 @@ struct ContentView: View {
                         .multilineTextAlignment(.center)
                         .lineLimit(2, reservesSpace: true)
                         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    Text(monitor.speedometer.topSpeedLine(in: unit, at: timeline.date))
+                        .font(.title3)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                        .padding(.top, 16)
                 }
             }
             Picker("Unit", selection: $unit) {

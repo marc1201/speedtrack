@@ -84,18 +84,29 @@ struct SpeedReading: Equatable {
     }
 }
 
-/// What the screen knows of the speed: the newest fix, and the last speed measured, which stays on
-/// screen in grey while no current one comes in. It lives only as long as the app does.
+/// What the screen knows of the speed: the newest fix, the last speed measured, which stays on
+/// screen in grey while no current one comes in, and the top speed of the day. It lives only as
+/// long as the app does.
 struct Speedometer {
     /// The newest fix. It says whether the speed is current and whether there is a location.
     private(set) var latest = SpeedReading.unknown
     /// The newest fix that had a speed.
     private(set) var lastSpeed = SpeedReading.unknown
+    /// The fastest fix of the newest day that had a speed.
+    private(set) var topSpeed = SpeedReading.unknown
 
-    mutating func record(_ reading: SpeedReading) {
+    mutating func record(_ reading: SpeedReading, calendar: Calendar = .current) {
         latest = reading
-        if reading.metersPerSecond != nil {
-            lastSpeed = reading
+        guard let speed = reading.metersPerSecond else { return }
+        lastSpeed = reading
+        if let top = topSpeed.metersPerSecond,
+           calendar.isDate(reading.measuredAt, inSameDayAs: topSpeed.measuredAt) {
+            if speed > top {
+                topSpeed = reading
+            }
+        } else if reading.measuredAt > topSpeed.measuredAt {
+            // A new day starts over. An older fix, such as a cached one from yesterday, does not.
+            topSpeed = reading
         }
     }
 
@@ -111,5 +122,16 @@ struct Speedometer {
         }
         guard let speed = lastSpeed.metersPerSecond else { return (SpeedReading.unknownLabel, false) }
         return (unit.label(metersPerSecond: speed), false)
+    }
+
+    /// The smaller line under the speed. Only a speed measured on the day of `now` counts.
+    func topSpeedLine(in unit: SpeedUnit, at now: Date, calendar: Calendar = .current) -> String {
+        var label = SpeedReading.unknownLabel
+        if let speed = topSpeed.metersPerSecond, calendar.isDate(topSpeed.measuredAt, inSameDayAs: now) {
+            label = unit.label(metersPerSecond: speed)
+        }
+        // "--" takes no unit. A pace gives it at a standstill too.
+        let unitTitle = label == SpeedReading.unknownLabel ? "" : " \(unit.title)"
+        return "Top speed today: \(label)\(unitTitle)"
     }
 }
