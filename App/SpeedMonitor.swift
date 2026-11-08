@@ -4,7 +4,7 @@ import Foundation
 
 /// Follows the device's location and motion and publishes the current speed.
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published private(set) var speedometer = Speedometer()
+    @Published private(set) var speedometer = Speedometer(store: TopSpeedStore(defaults: .standard))
     @Published private(set) var access = LocationAccess.undecided
 
     private let manager = CLLocationManager()

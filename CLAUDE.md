@@ -13,9 +13,12 @@ project.
   dependencies.
 - `SpeedTrack.xcodeproj` is committed and is the one source of project settings, edited by hand
   because there is no Xcode here. Its synced folders pick up new files under `App/` and `Tests/`.
-- `SpeedReading`, `LocationAccess` and `StillnessDetector` hold the pure logic and are unit-tested.
-  `SpeedMonitor` wraps CoreLocation and CoreMotion. `ContentView` shows the number and the status
-  line.
+- `SpeedReading.swift` (with `Speedometer` and `TopSpeedStore`), `LocationAccess` and
+  `StillnessDetector` hold the logic that needs only Foundation, and are unit-tested. `SpeedMonitor`
+  wraps CoreLocation and CoreMotion. `ContentView` shows the number, the status line and the top
+  speed of the day.
+- Nothing from location is stored except the top speed of the day and its time, which stay in the
+  app's own settings on the phone, by Marc's decision of 2026-11-08. The app sends nothing anywhere.
 
 ## There is no Xcode here
 

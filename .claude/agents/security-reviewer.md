@@ -27,7 +27,10 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    they run where Apple signs, and Marc accepted that trade-off, not any specific script. Xcode can
    also run a script phase in the background while it indexes the project.
 4. **Location privacy.** Location is used only while the app is in use. No background mode, no
-   `Always` authorization. Location data is not stored, logged or sent off the device. The usage
+   `Always` authorization. Location data is not stored, logged or sent off the device, with one
+   exception by Marc's decision of 2026-11-08: the top speed of the day and its time stay in the
+   app's own UserDefaults on the phone, so also in the phone's backup, and the app sends them
+   nowhere. Storing anything else from location, or more than that one speed, is HIGH. The usage
    string says what the app really does.
 5. **No network, no dependencies.** The app makes no network call and has no third-party
    dependency. Adding either is Marc's decision.

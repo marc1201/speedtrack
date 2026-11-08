@@ -85,15 +85,21 @@ struct SpeedReading: Equatable {
 }
 
 /// What the screen knows of the speed: the newest fix, the last speed measured, which stays on
-/// screen in grey while no current one comes in, and the top speed of the day. It lives only as
-/// long as the app does.
+/// screen in grey while no current one comes in, and the top speed of the day. Only the top speed
+/// outlasts the app, and only when there is a store for it.
 struct Speedometer {
     /// The newest fix. It says whether the speed is current and whether there is a location.
     private(set) var latest = SpeedReading.unknown
     /// The newest fix that had a speed.
     private(set) var lastSpeed = SpeedReading.unknown
     /// The fastest fix of the newest day that had a speed.
-    private(set) var topSpeed = SpeedReading.unknown
+    private(set) var topSpeed: SpeedReading
+    private let store: TopSpeedStore?
+
+    init(store: TopSpeedStore? = nil, now: Date = Date()) {
+        self.store = store
+        topSpeed = store?.load(at: now) ?? .unknown
+    }
 
     mutating func record(_ reading: SpeedReading, calendar: Calendar = .current) {
         latest = reading
@@ -101,13 +107,13 @@ struct Speedometer {
         lastSpeed = reading
         if let top = topSpeed.metersPerSecond,
            calendar.isDate(reading.measuredAt, inSameDayAs: topSpeed.measuredAt) {
-            if speed > top {
-                topSpeed = reading
-            }
-        } else if reading.measuredAt > topSpeed.measuredAt {
+            guard speed > top else { return }
+        } else {
             // A new day starts over. An older fix, such as a cached one from yesterday, does not.
-            topSpeed = reading
+            guard reading.measuredAt > topSpeed.measuredAt else { return }
         }
+        topSpeed = reading
+        store?.save(reading)
     }
 
     /// Without permission no fix counts, but the last speed stays on screen.
@@ -133,5 +139,33 @@ struct Speedometer {
         // "--" takes no unit. A pace gives it at a standstill too.
         let unitTitle = label == SpeedReading.unknownLabel ? "" : " \(unit.title)"
         return "Top speed today: \(label)\(unitTitle)"
+    }
+}
+
+/// Keeps the top speed of the day in the app's own settings on the phone, so it outlasts the app.
+/// By Marc's decision of 2026-11-08 it is the only thing from location the app stores: one speed
+/// and its time, which the app sends nowhere.
+struct TopSpeedStore {
+    static let speedKey = "topSpeedMetersPerSecond"
+    static let timeKey = "topSpeedMeasuredAt"
+
+    let defaults: UserDefaults
+
+    /// A top speed from the future means the clock was wrong. It would keep out every newer top
+    /// speed until then, so it is dropped.
+    func load(at now: Date) -> SpeedReading {
+        guard defaults.object(forKey: Self.speedKey) != nil,
+              defaults.object(forKey: Self.timeKey) != nil
+        else { return .unknown }
+        let measuredAt = Date(timeIntervalSinceReferenceDate: defaults.double(forKey: Self.timeKey))
+        guard measuredAt <= now else { return .unknown }
+        let topSpeed = SpeedReading(rawSpeed: defaults.double(forKey: Self.speedKey), measuredAt: measuredAt)
+        return topSpeed.metersPerSecond == nil ? .unknown : topSpeed
+    }
+
+    func save(_ topSpeed: SpeedReading) {
+        guard let speed = topSpeed.metersPerSecond else { return }
+        defaults.set(speed, forKey: Self.speedKey)
+        defaults.set(topSpeed.measuredAt.timeIntervalSinceReferenceDate, forKey: Self.timeKey)
     }
 }

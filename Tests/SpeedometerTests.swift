@@ -87,8 +87,12 @@ final class SpeedometerTests: XCTestCase {
     /// Noon on 1 January 2001, UTC.
     private let noon = Date(timeIntervalSinceReferenceDate: 12 * 3_600)
 
+    private func time(hoursAfterNoon hours: Double) -> Date {
+        noon.addingTimeInterval(hours * 3_600)
+    }
+
     private func record(_ speed: Double, hoursAfterNoon hours: Double, into speedometer: inout Speedometer) {
-        let reading = SpeedReading(rawSpeed: speed, measuredAt: noon.addingTimeInterval(hours * 3_600))
+        let reading = SpeedReading(rawSpeed: speed, measuredAt: time(hoursAfterNoon: hours))
         speedometer.record(reading, calendar: utc)
     }
 
@@ -97,7 +101,7 @@ final class SpeedometerTests: XCTestCase {
         hoursAfterNoon hours: Double,
         in unit: SpeedUnit = .kilometersPerHour
     ) -> String {
-        speedometer.topSpeedLine(in: unit, at: noon.addingTimeInterval(hours * 3_600), calendar: utc)
+        speedometer.topSpeedLine(in: unit, at: time(hoursAfterNoon: hours), calendar: utc)
     }
 
     func testNoSpeedYetHasNoTopSpeed() {
@@ -149,5 +153,79 @@ final class SpeedometerTests: XCTestCase {
         XCTAssertEqual(topSpeedLine(speedometer, hoursAfterNoon: 0), "Top speed today: 0 km/h")
         let pace = topSpeedLine(speedometer, hoursAfterNoon: 0, in: .minutesPerKilometer)
         XCTAssertEqual(pace, "Top speed today: --")
+    }
+
+    // MARK: - The top speed on the phone
+
+    private let suiteName = "SpeedTrackTests.TopSpeedStore"
+    private var defaults: UserDefaults!
+    private var store: TopSpeedStore { TopSpeedStore(defaults: defaults) }
+
+    override func setUp() {
+        super.setUp()
+        defaults = UserDefaults(suiteName: suiteName)
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        super.tearDown()
+    }
+
+    func testNothingStoredIsNoTopSpeed() {
+        XCTAssertEqual(store.load(at: noon), .unknown)
+        XCTAssertEqual(Speedometer(store: store, now: noon).topSpeed, .unknown)
+    }
+
+    func testTheTopSpeedOutlastsTheApp() {
+        var before = Speedometer(store: store, now: noon)
+        record(20, hoursAfterNoon: 0, into: &before)
+        let after = Speedometer(store: store, now: time(hoursAfterNoon: 1))
+        XCTAssertEqual(topSpeedLine(after, hoursAfterNoon: 1), "Top speed today: 72 km/h")
+    }
+
+    func testOnlyANewTopSpeedIsStored() {
+        var speedometer = Speedometer(store: store, now: noon)
+        record(10, hoursAfterNoon: 0, into: &speedometer)
+        record(20, hoursAfterNoon: 1, into: &speedometer)
+        record(15, hoursAfterNoon: 2, into: &speedometer)
+        record(-1, hoursAfterNoon: 3, into: &speedometer)
+        let stored = store.load(at: time(hoursAfterNoon: 4))
+        XCTAssertEqual(stored, SpeedReading(rawSpeed: 20, measuredAt: time(hoursAfterNoon: 1)))
+    }
+
+    func testOnlyTheTopSpeedAndItsTimeAreStored() {
+        var speedometer = Speedometer(store: store, now: noon)
+        record(20, hoursAfterNoon: 0, into: &speedometer)
+        record(10, hoursAfterNoon: 1, into: &speedometer)
+        speedometer.forgetLocation()
+        let stored = defaults.persistentDomain(forName: suiteName) ?? [:]
+        XCTAssertEqual(Set(stored.keys), [TopSpeedStore.speedKey, TopSpeedStore.timeKey])
+    }
+
+    func testYesterdaysStoredTopSpeedGivesWayToToday() {
+        var yesterday = Speedometer(store: store, now: noon)
+        record(20, hoursAfterNoon: 0, into: &yesterday)
+        var today = Speedometer(store: store, now: time(hoursAfterNoon: 13))
+        XCTAssertEqual(topSpeedLine(today, hoursAfterNoon: 13), "Top speed today: --")
+        record(5, hoursAfterNoon: 13, into: &today)
+        let stored = store.load(at: time(hoursAfterNoon: 14))
+        XCTAssertEqual(stored, SpeedReading(rawSpeed: 5, measuredAt: time(hoursAfterNoon: 13)))
+    }
+
+    func testATopSpeedFromTheFutureIsDropped() {
+        store.save(SpeedReading(rawSpeed: 20, measuredAt: time(hoursAfterNoon: 2)))
+        XCTAssertEqual(store.load(at: noon), .unknown)
+        var speedometer = Speedometer(store: store, now: noon)
+        record(5, hoursAfterNoon: 0, into: &speedometer)
+        XCTAssertEqual(topSpeedLine(speedometer, hoursAfterNoon: 0), "Top speed today: 18 km/h")
+    }
+
+    func testAnInvalidOrHalfStoredTopSpeedIsNone() {
+        defaults.set(-1.0, forKey: TopSpeedStore.speedKey)
+        defaults.set(noon.timeIntervalSinceReferenceDate, forKey: TopSpeedStore.timeKey)
+        XCTAssertEqual(store.load(at: noon), .unknown)
+        defaults.removeObject(forKey: TopSpeedStore.speedKey)
+        XCTAssertEqual(store.load(at: noon), .unknown)
     }
 }
