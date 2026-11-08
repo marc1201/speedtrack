@@ -4,7 +4,7 @@ import Foundation
 
 /// Follows the device's location and motion and publishes the current speed.
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
-    @Published private(set) var reading = SpeedReading.unknown
+    @Published private(set) var speedometer = Speedometer()
     @Published private(set) var access = LocationAccess.undecided
 
     private let manager = CLLocationManager()
@@ -45,7 +45,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         refreshAccess()
         if access != .precise && access != .approximate {
-            reading = .unknown
+            speedometer.forgetLocation()
         }
         // This also fires while the app is off screen, and start() is what decides.
         if isFollowing {
@@ -56,11 +56,11 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // A negative accuracy marks invalid coordinates, and 0 is not expected either.
         guard let latest = locations.last, latest.horizontalAccuracy > 0 else { return }
-        reading = SpeedReading(
+        speedometer.record(SpeedReading(
             rawSpeed: latest.speed,
             measuredAt: latest.timestamp,
             deviceIsStill: stillness.isStill(at: latest.timestamp)
-        )
+        ))
     }
 
     /// Core Location requires this method, but no error needs an answer here. A real denial also

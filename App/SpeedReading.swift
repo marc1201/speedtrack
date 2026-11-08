@@ -83,3 +83,33 @@ struct SpeedReading: Equatable {
         return unit.label(metersPerSecond: speed)
     }
 }
+
+/// What the screen knows of the speed: the newest fix, and the last speed measured, which stays on
+/// screen in grey while no current one comes in. It lives only as long as the app does.
+struct Speedometer {
+    /// The newest fix. It says whether the speed is current and whether there is a location.
+    private(set) var latest = SpeedReading.unknown
+    /// The newest fix that had a speed.
+    private(set) var lastSpeed = SpeedReading.unknown
+
+    mutating func record(_ reading: SpeedReading) {
+        latest = reading
+        if reading.metersPerSecond != nil {
+            lastSpeed = reading
+        }
+    }
+
+    /// Without permission no fix counts, but the last speed stays on screen.
+    mutating func forgetLocation() {
+        latest = .unknown
+    }
+
+    /// The number on screen: the current speed, or else the last one, which is not current.
+    func shown(in unit: SpeedUnit, at now: Date) -> (label: String, isCurrent: Bool) {
+        if let speed = latest.currentSpeed(at: now) {
+            return (unit.label(metersPerSecond: speed), true)
+        }
+        guard let speed = lastSpeed.metersPerSecond else { return (SpeedReading.unknownLabel, false) }
+        return (unit.label(metersPerSecond: speed), false)
+    }
+}
