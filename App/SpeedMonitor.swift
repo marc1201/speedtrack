@@ -6,6 +6,8 @@ import Foundation
 final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published private(set) var speedometer = Speedometer(store: TopSpeedStore(defaults: .standard))
     @Published private(set) var access = LocationAccess.undecided
+    /// The newest fix, for the map. Like every fix it stays in memory only.
+    @Published private(set) var location: CLLocation?
 
     private let manager = CLLocationManager()
     private let motion = CMMotionManager()
@@ -46,6 +48,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
         refreshAccess()
         if access != .precise && access != .approximate {
             speedometer.forgetLocation()
+            location = nil
         }
         // This also fires while the app is off screen, and start() is what decides.
         if isFollowing {
@@ -56,6 +59,7 @@ final class SpeedMonitor: NSObject, ObservableObject, CLLocationManagerDelegate 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         // A negative accuracy marks invalid coordinates, and 0 is not expected either.
         guard let latest = locations.last, latest.horizontalAccuracy > 0 else { return }
+        location = latest
         speedometer.record(SpeedReading(
             rawSpeed: latest.speed,
             measuredAt: latest.timestamp,

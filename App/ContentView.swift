@@ -11,8 +11,8 @@ struct ContentView: View {
             TimelineView(.periodic(from: .now, by: 1)) { timeline in
                 let speed = monitor.speedometer.shown(in: unit, at: timeline.date)
                 VStack(spacing: 8) {
-                    // The speed is all the app shows, so it may take the whole width. A label too wide
-                    // for it, such as a pace, shrinks to fit.
+                    // The speed comes first, so it may take the whole width. A label too wide for it,
+                    // such as a pace, shrinks to fit.
                     Text(speed.label)
                         .font(.system(size: 200, weight: .bold, design: .rounded))
                         .monospacedDigit()
@@ -40,6 +40,8 @@ struct ContentView: View {
                         .padding(.top, 16)
                 }
             }
+            // The speed keeps its full size, and the map gets the room that is left.
+            .layoutPriority(1)
             Picker("Unit", selection: $unit) {
                 ForEach(SpeedUnit.allCases) { option in
                     Text(option.title).tag(option)
@@ -47,6 +49,10 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
             .padding(.top, 24)
+            PositionMap(location: monitor.location, speed: monitor.speedometer.latest.metersPerSecond)
+                .frame(minHeight: 160)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.top, 8)
         }
         .padding()
         .onChange(of: scenePhase, initial: true) { _, phase in
