@@ -35,8 +35,12 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    location, or more than that one speed, or sending location anywhere else, is HIGH. The usage
    string says what the app really does.
 5. **No network of its own, no dependencies.** The app's own code makes no network call: MapKit
-   loading Apple's map is the one exception, by Marc's decision of 2026-11-10. The app has no
-   third-party dependency. Adding either is Marc's decision.
+   loading Apple's map is the one exception, by Marc's decision of 2026-11-10, and the path monitor
+   in `Connectivity` only watches whether a network exists. The app has no third-party dependency.
+   `App/OverviewMap.dat` is data from Natural Earth, in the public domain, made by
+   `tools/build-overview-map.py` from inputs pinned by SHA-256. That script runs only by hand on the
+   VPS, never in CI or on Apple's machines. Adding a network call, a dependency, or a download of
+   map data is Marc's decision.
 6. **Capabilities.** No new entitlement, capability, URL scheme or App Transport Security exception
    without Marc's decision.
 

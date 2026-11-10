@@ -5,14 +5,15 @@ final class MapZoomTests: XCTestCase {
     private func span(
         _ kilometersPerHour: Double?,
         accuracy: Double = 5,
+        offline: Bool = false,
         after zoom: inout MapZoom
     ) -> Double {
-        zoom.span(speed: kilometersPerHour.map { $0 / 3.6 }, accuracy: accuracy)
+        zoom.span(speed: kilometersPerHour.map { $0 / 3.6 }, accuracy: accuracy, offline: offline)
     }
 
-    private func firstSpan(_ kilometersPerHour: Double?, accuracy: Double = 5) -> Double {
+    private func firstSpan(_ kilometersPerHour: Double?, accuracy: Double = 5, offline: Bool = false) -> Double {
         var zoom = MapZoom()
-        return span(kilometersPerHour, accuracy: accuracy, after: &zoom)
+        return span(kilometersPerHour, accuracy: accuracy, offline: offline, after: &zoom)
     }
 
     func testTheMapShowsAboutTwoMinutesOfTravel() {
@@ -40,6 +41,13 @@ final class MapZoomTests: XCTestCase {
         var zoom = MapZoom()
         XCTAssertEqual(span(300, after: &zoom), 16_000)
         XCTAssertEqual(span(nil, after: &zoom), 16_000)
+    }
+
+    func testWithoutInternetTheMapShowsTheOverview() {
+        var zoom = MapZoom()
+        XCTAssertEqual(span(100, offline: true, after: &zoom), 64_000)
+        XCTAssertEqual(span(100, after: &zoom), 4_000)
+        XCTAssertEqual(firstSpan(10_000, offline: true), 128_000)
     }
 
     func testAnApproximateLocationFitsOnTheMap() {

@@ -31,3 +31,6 @@ xcodebuild archive -quiet \
 
 # Without this file in the app, App Store Connect can refuse the build for using UserDefaults.
 test -f "$archive/Products/Applications/SpeedTrack.app/PrivacyInfo.xcprivacy"
+
+# Without this file the map has nothing to show offline, and the app would not say so.
+test -f "$archive/Products/Applications/SpeedTrack.app/OverviewMap.dat"

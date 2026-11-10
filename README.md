@@ -1,7 +1,8 @@
 # Speedtrack
 
-A small native iOS app that shows how fast the device is moving, using SwiftUI, CoreLocation and
-CoreMotion.
+A small native iOS app that shows how fast the device is moving and where it is on a map, using
+SwiftUI, CoreLocation, CoreMotion and MapKit. Without internet the map shows a built-in overview
+made from [Natural Earth](https://www.naturalearthdata.com) data, which is in the public domain.
 
 ## Build
 

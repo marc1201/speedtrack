@@ -14,10 +14,13 @@ project.
 - `SpeedTrack.xcodeproj` is committed and is the one source of project settings, edited by hand
   because there is no Xcode here. Its synced folders pick up new files under `App/` and `Tests/`.
 - `SpeedReading.swift` (with `Speedometer` and `TopSpeedStore`), `LocationAccess`,
-  `StillnessDetector` and `MapZoom` hold the logic that needs only Foundation, and are unit-tested;
-  `ci/local-check.sh` lists their files. `SpeedMonitor` wraps CoreLocation and CoreMotion.
-  `ContentView` shows the number, the status line, the top speed of the day and `PositionMap`, the
-  map.
+  `StillnessDetector`, `MapZoom` and `OverviewMap.swift` hold the logic that needs only Foundation,
+  and are unit-tested; `ci/local-check.sh` lists their files. `SpeedMonitor` wraps CoreLocation and
+  CoreMotion, and `Connectivity` the Network framework's path monitor. `ContentView` shows the
+  number, the status line, the top speed of the day and `PositionMap`, the map.
+- Without internet the map draws `App/OverviewMap.dat`, a built-in overview from Natural Earth,
+  which is in the public domain. `tools/build-overview-map.py` makes it from pinned downloads, by
+  hand on the VPS, and its docstring has the steps.
 - Nothing from location is stored except the top speed of the day and its time, which stay in the
   app's own settings on the phone, by Marc's decision of 2026-11-08. The app's own code sends nothing
   anywhere. The map is Apple's, by Marc's decision of 2026-11-10: MapKit loads the area on screen
