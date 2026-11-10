@@ -21,6 +21,7 @@ project.
 - Without internet the map draws `App/OverviewMap.dat`, a built-in overview from Natural Earth,
   which is in the public domain. `tools/build-overview-map.py` makes it from pinned downloads, by
   hand on the VPS, and its docstring has the steps.
+- `ROADMAP.md` holds what Marc has asked for and is not built yet, with the research behind it.
 - Nothing from location is stored except the top speed of the day and its time, which stay in the
   app's own settings on the phone, by Marc's decision of 2026-11-08. The app's own code sends nothing
   anywhere. The map is Apple's, by Marc's decision of 2026-11-10: MapKit loads the area on screen
