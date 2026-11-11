@@ -2,7 +2,7 @@ import XCTest
 @testable import SpeedTrack
 
 final class CountryMapTests: XCTestCase {
-    private let hash = String(repeating: "ab", count: 32)
+    private let digest = String(repeating: "ab", count: 32)
 
     private func list(_ entries: [[String: Any]]) throws -> [CountryMap] {
         try CountryMap.list(from: JSONSerialization.data(withJSONObject: ["files": entries]))
@@ -10,7 +10,7 @@ final class CountryMapTests: XCTestCase {
 
     private func entry(name: String = "pt-z12-20261110.pmtiles", bytes: Int = 90_611_760, sha256: String? = nil) -> [String: Any] {
         // Keys the app does not read, such as those the map server may add, are ignored.
-        ["name": name, "bytes": bytes, "sha256": sha256 ?? hash, "title": "Portugal", "note": "ignored"]
+        ["name": name, "bytes": bytes, "sha256": sha256 ?? digest, "title": "Portugal", "note": "ignored"]
     }
 
     func testReadsTheList() throws {
@@ -29,8 +29,8 @@ final class CountryMapTests: XCTestCase {
 
     func testRefusesASizeOrHashThatCannotBeRight() {
         XCTAssertThrowsError(try list([entry(bytes: 0)]))
-        XCTAssertThrowsError(try list([entry(sha256: String(hash.dropLast()))]))
-        XCTAssertThrowsError(try list([entry(sha256: hash.uppercased())]))
+        XCTAssertThrowsError(try list([entry(sha256: String(digest.dropLast()))]))
+        XCTAssertThrowsError(try list([entry(sha256: digest.uppercased())]))
         XCTAssertThrowsError(try list([entry(), entry()]))
     }
 
