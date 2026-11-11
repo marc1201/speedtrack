@@ -18,8 +18,11 @@ struct ContentView: View {
                     // would change size with the unit or the speed, so a hidden digit at full size
                     // keeps the height.
                     ZStack {
+                        // It may still shrink on a short screen, where the room gives way.
                         Text(verbatim: "0")
                             .font(Self.speedFont)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                             .hidden()
                         Text(speed.label)
                             .font(Self.speedFont)
@@ -44,6 +47,8 @@ struct ContentView: View {
                     ZStack {
                         Text(verbatim: "0")
                             .font(.title3)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
                             .hidden()
                         Text(monitor.speedometer.topSpeedLine(in: unit, at: timeline.date))
                             .font(.title3)
