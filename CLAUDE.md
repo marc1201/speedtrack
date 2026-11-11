@@ -31,9 +31,11 @@ project.
   SIL Open Font License, into `App/MapGlyphs/`.
 - A country is a PMTiles file cut from Protomaps' daily OpenStreetMap build (ODbL, so the map credits
   OpenStreetMap) by `tools/extract-country-map.py`, by hand on the VPS, into `build/maps/`.
-  `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app checks every
-  download against that list, and the box's maps verb of the 1201-assistant session publishes
-  exactly those files at `https://maps.1201.de/`, by Marc's decision of 2026-11-11. That server
+  `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app writes a download
+  straight into a partial file and continues it with a Range request, so nothing that arrived is
+  fetched twice, and checks the whole file against that list. The box's maps verb of the
+  1201-assistant session publishes exactly those files at `https://maps.1201.de/`, by Marc's
+  decision of 2026-11-11. That server
   refuses downloads beyond 100 GB a month and 10 GB a day, answering 503 with Retry-After, and keeps
   no request log. Never change a file once its hash is in the list: a new build gets a new dated
   name. Once a publish is confirmed, delete the copies in `build/maps/` to free the disk.

@@ -46,6 +46,42 @@ struct CountryMap: Decodable, Identifiable, Equatable {
         return maps
     }()
 
+    /// What a download does with the map server's answer, before it writes a byte.
+    enum Answer: Equatable {
+        /// The rest of the file follows: add it to the partial file.
+        case append
+        /// The whole file follows: start the partial file over.
+        case restart
+        /// The partial file is whole already, and only needs its check.
+        case complete
+        case paused(until: Date)
+        case refused(String, discardPart: Bool)
+    }
+
+    /// `offset` is how much of the file the phone has already, and a request with an offset asked
+    /// for the rest only.
+    func answer(status: Int, contentRange: String?, retryAfter: String?, offset: Int64, now: Date) -> Answer {
+        switch status {
+        case 200:
+            return .restart
+        case 206 where offset > 0 && contentRange?.hasPrefix("bytes \(offset)-") == true:
+            return .append
+        case 206:
+            return .refused("The map server sent the wrong part. Try again later.", discardPart: false)
+        case 416 where offset == bytes:
+            return .complete
+        case 416:
+            return .refused("The download did not fit the map. Download again.", discardPart: true)
+        case 503:
+            return Self.resumption(retryAfter: retryAfter, now: now).map { .paused(until: $0) }
+                ?? .refused("The map server is busy. Try again later.", discardPart: false)
+        case 404:
+            return .refused("This map is not on the map server yet.", discardPart: false)
+        default:
+            return .refused("The map server answered \(status).", discardPart: false)
+        }
+    }
+
     /// When a paused server takes downloads again. Its answer 503 says in how many seconds.
     static func resumption(retryAfter: String?, now: Date) -> Date? {
         guard let retryAfter,

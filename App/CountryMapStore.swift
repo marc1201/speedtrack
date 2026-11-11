@@ -2,10 +2,11 @@ import CryptoKit
 import Foundation
 
 /// The OpenStreetMap files on the phone. A tap in Settings downloads one, which is checked against
-/// the size and SHA-256 in `CountryMaps.json` before the map uses it. A download that breaks off
-/// keeps what it has, and the next tap asks the server only for the rest: the server charges every
-/// byte it sends against a monthly budget. When that budget is spent the server pauses downloads,
-/// and the app says until when, and offers no download before then.
+/// the size and SHA-256 in `CountryMaps.json` before the map uses it. What arrives goes straight into
+/// a partial file, so a download that breaks off, or an app that iOS ends meanwhile, keeps it: the
+/// next tap asks the server only for the rest, since the server charges every byte it sends against
+/// a monthly budget. When that budget is spent the server pauses downloads, and the app says until
+/// when, and offers no download before then.
 @MainActor
 final class CountryMapStore: ObservableObject {
     enum State: Equatable {
@@ -20,7 +21,7 @@ final class CountryMapStore: ObservableObject {
     @Published private(set) var states: [String: State] = [:]
 
     private let session: URLSession
-    private var tasks: [String: URLSessionDownloadTask] = [:]
+    private var tasks: [String: URLSessionDataTask] = [:]
 
     /// In Library, which the system does not clear, and outside the phone's backup, since every file
     /// can be downloaded again. The path has no spaces, which MapLibre would have to decode.
@@ -32,6 +33,8 @@ final class CountryMapStore: ObservableObject {
         try? directory.setResourceValues(values)
         return directory
     }()
+
+    nonisolated static let stoppedMessage = "The download stopped. Download again to continue where it stopped."
 
     init() {
         let configuration = URLSessionConfiguration.default
@@ -45,8 +48,8 @@ final class CountryMapStore: ObservableObject {
         for map in CountryMap.all {
             if FileManager.default.fileExists(atPath: Self.file(for: map).path) {
                 states[map.name] = .ready
-            } else if FileManager.default.fileExists(atPath: Self.resumeData(for: map).path) {
-                states[map.name] = .failed(Self.brokeOffMessage)
+            } else if Self.partSize(of: map) > 0 {
+                states[map.name] = .failed(Self.stoppedMessage)
             }
         }
     }
@@ -63,24 +66,22 @@ final class CountryMapStore: ObservableObject {
     func download(_ map: CountryMap) {
         if case .paused = state(of: map) { return }
         guard tasks[map.name] == nil else { return }
-        let resumeFile = Self.resumeData(for: map)
-        let task = if let resumeData = try? Data(contentsOf: resumeFile) {
-            session.downloadTask(withResumeData: resumeData)
-        } else {
-            session.downloadTask(with: map.url)
+        var request = URLRequest(url: map.url)
+        let offset = Self.partSize(of: map)
+        if offset > 0 {
+            request.setValue("bytes=\(offset)-", forHTTPHeaderField: "Range")
         }
-        // The task holds the resume data now, and gives new data if it breaks off again.
-        try? FileManager.default.removeItem(at: resumeFile)
+        let task = session.dataTask(with: request)
         task.taskDescription = map.name
         tasks[map.name] = task
-        states[map.name] = .downloading(fraction: 0)
+        states[map.name] = .downloading(fraction: min(Double(offset) / Double(map.bytes), 1))
         task.resume()
     }
 
     /// Stops a download and throws away what it has.
     func cancel(_ map: CountryMap) {
         tasks.removeValue(forKey: map.name)?.cancel()
-        try? FileManager.default.removeItem(at: Self.resumeData(for: map))
+        try? FileManager.default.removeItem(at: Self.part(for: map))
         states[map.name] = .absent
     }
 
@@ -89,15 +90,19 @@ final class CountryMapStore: ObservableObject {
         try? FileManager.default.removeItem(at: Self.file(for: map))
     }
 
-    fileprivate func progressed(_ name: String, task: Int, written: Int64) {
-        guard tasks[name]?.taskIdentifier == task,
-              let map = CountryMap.all.first(where: { $0.name == name })
-        else { return }
-        states[name] = .downloading(fraction: min(Double(written) / Double(map.bytes), 1))
+    fileprivate func progressed(_ name: String, task: Int, fraction: Double) {
+        guard tasks[name]?.taskIdentifier == task else { return }
+        states[name] = .downloading(fraction: fraction)
     }
 
     fileprivate func finished(_ name: String, task: Int, as state: State) {
-        guard tasks[name]?.taskIdentifier == task else { return }
+        guard tasks[name]?.taskIdentifier == task else {
+            // Cancelled while the file was checked: a cancel keeps nothing.
+            if state == .ready, let map = CountryMap.all.first(where: { $0.name == name }) {
+                try? FileManager.default.removeItem(at: Self.file(for: map))
+            }
+            return
+        }
         tasks[name] = nil
         states[name] = state
         if case .paused(let until) = state {
@@ -110,69 +115,50 @@ final class CountryMapStore: ObservableObject {
         }
     }
 
-    fileprivate func brokeOff(_ name: String, task: Int, error: Error, resumeData: Data?) {
-        guard tasks[name]?.taskIdentifier == task,
-              let map = CountryMap.all.first(where: { $0.name == name })
-        else { return }
-        tasks[name] = nil
-        if let resumeData {
-            try? resumeData.write(to: Self.resumeData(for: map))
-            states[name] = .failed(Self.brokeOffMessage)
-        } else if (error as? URLError)?.networkUnavailableReason == .constrained {
-            states[name] = .failed("Low Data Mode is on, so the map was not downloaded.")
-        } else {
-            states[name] = .failed("The download failed: \(error.localizedDescription)")
-        }
-    }
-
-    private static let brokeOffMessage = "The download stopped. Download again to continue where it stopped."
-
     nonisolated static func file(for map: CountryMap) -> URL {
         directory.appending(path: map.name)
     }
 
-    private nonisolated static func resumeData(for map: CountryMap) -> URL {
-        directory.appending(path: map.name + ".resume")
+    nonisolated static func part(for map: CountryMap) -> URL {
+        directory.appending(path: map.name + ".part")
     }
 
-    /// Files of earlier lists, and a check that was cut short, would only take space.
+    nonisolated static func partSize(of map: CountryMap) -> Int64 {
+        let size = try? part(for: map).resourceValues(forKeys: [.fileSizeKey]).fileSize
+        return Int64(size ?? 0)
+    }
+
+    /// Files of earlier lists would only take space.
     private func removeUnlisted() {
-        let kept = Set(CountryMap.all.flatMap { [Self.file(for: $0), Self.resumeData(for: $0)].map(\.lastPathComponent) })
+        let kept = Set(CountryMap.all.flatMap { [Self.file(for: $0), Self.part(for: $0)].map(\.lastPathComponent) })
         let files = (try? FileManager.default.contentsOfDirectory(at: Self.directory, includingPropertiesForKeys: nil)) ?? []
         for file in files where !kept.contains(file.lastPathComponent) {
             try? FileManager.default.removeItem(at: file)
         }
     }
 
-    /// Runs on the session's queue, before the session deletes the downloaded file.
-    fileprivate nonisolated static func accept(_ download: URL, for map: CountryMap, response: URLResponse?) -> State {
-        let response = response as? HTTPURLResponse
-        switch response?.statusCode ?? 0 {
-        case 200, 206:
-            break
-        case 503:
-            let until = CountryMap.resumption(retryAfter: response?.value(forHTTPHeaderField: "Retry-After"), now: .now)
-            return until.map { State.paused(until: $0) } ?? .failed("The map server is busy. Try again later.")
-        case 404:
-            return .failed("This map is not on the map server yet.")
-        default:
-            return .failed("The map server answered \(response?.statusCode ?? 0).")
-        }
-        let destination = file(for: map)
-        let checking = destination.appendingPathExtension("checking")
-        do {
-            try? FileManager.default.removeItem(at: checking)
-            try FileManager.default.moveItem(at: download, to: checking)
-            let size = try checking.resourceValues(forKeys: [.fileSizeKey]).fileSize
-            guard size.map(Int64.init) == map.bytes, try sha256(of: checking) == map.sha256 else {
-                try? FileManager.default.removeItem(at: checking)
+    /// Makes a whole partial file the map, once its size and SHA-256 match the list. Runs off the
+    /// main actor, since hashing a large file takes seconds.
+    nonisolated static func finish(_ map: CountryMap) -> State {
+        let part = part(for: map)
+        let size = partSize(of: map)
+        guard size == map.bytes else {
+            if size > map.bytes {
+                try? FileManager.default.removeItem(at: part)
                 return .failed("The download was damaged. Download again.")
             }
+            return .failed(stoppedMessage)
+        }
+        do {
+            guard try sha256(of: part) == map.sha256 else {
+                try? FileManager.default.removeItem(at: part)
+                return .failed("The download was damaged. Download again.")
+            }
+            let destination = file(for: map)
             try? FileManager.default.removeItem(at: destination)
-            try FileManager.default.moveItem(at: checking, to: destination)
+            try FileManager.default.moveItem(at: part, to: destination)
             return .ready
         } catch {
-            try? FileManager.default.removeItem(at: checking)
             return .failed("The map could not be saved: \(error.localizedDescription)")
         }
     }
@@ -194,28 +180,26 @@ final class CountryMapStore: ObservableObject {
     }
 }
 
-/// URLSession calls back on a queue of its own. This checks a finished file there, and hands every
-/// outcome to the store on the main actor.
-private final class Receiver: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+/// URLSession calls back on a serial queue of its own. This writes what arrives to the partial file
+/// there, and hands every outcome to the store on the main actor.
+private final class Receiver: NSObject, URLSessionDataDelegate, @unchecked Sendable {
     weak var store: CountryMapStore?
 
-    func urlSession(
-        _ session: URLSession,
-        downloadTask: URLSessionDownloadTask,
-        didWriteData bytesWritten: Int64,
-        totalBytesWritten: Int64,
-        totalBytesExpectedToWrite: Int64
-    ) {
-        guard let name = downloadTask.taskDescription else { return }
-        let task = downloadTask.taskIdentifier
-        let store = self.store
-        Task { @MainActor in
-            store?.progressed(name, task: task, written: totalBytesWritten)
-        }
+    private struct Transfer {
+        let map: CountryMap
+        let file: FileHandle
+        var written: Int64
+        var percent = -1
+        var failure: String?
     }
 
-    /// The maps come from the map server alone. A redirect elsewhere ends the download, whose answer
-    /// then fails the status check.
+    /// Both are touched only on the session's queue, where every call below runs.
+    private var transfers: [Int: Transfer] = [:]
+    /// Tasks whose outcome has been handed on, so that their end hands on nothing more.
+    private var concluded: Set<Int> = []
+
+    /// The maps come from the map server alone, which sends no redirects. A redirect ends the
+    /// download, whose answer then fails the status check.
     func urlSession(
         _ session: URLSession,
         task: URLSessionTask,
@@ -223,28 +207,122 @@ private final class Receiver: NSObject, URLSessionDownloadDelegate, @unchecked S
         newRequest request: URLRequest,
         completionHandler: @escaping (URLRequest?) -> Void
     ) {
-        completionHandler(request.url?.host() == CountryMap.server.host() ? request : nil)
+        completionHandler(nil)
     }
 
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        guard let name = downloadTask.taskDescription,
+    func urlSession(
+        _ session: URLSession,
+        dataTask: URLSessionDataTask,
+        didReceive response: URLResponse,
+        completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
+    ) {
+        guard let name = dataTask.taskDescription,
               let map = CountryMap.all.first(where: { $0.name == name })
-        else { return }
-        let task = downloadTask.taskIdentifier
-        let state = CountryMapStore.accept(location, for: map, response: downloadTask.response)
-        let store = self.store
-        Task { @MainActor in
-            store?.finished(name, task: task, as: state)
+        else {
+            completionHandler(.cancel)
+            return
+        }
+        let task = dataTask.taskIdentifier
+        let http = response as? HTTPURLResponse
+        let part = CountryMapStore.part(for: map)
+        let offset = CountryMapStore.partSize(of: map)
+        let answer = map.answer(
+            status: http?.statusCode ?? 0,
+            contentRange: http?.value(forHTTPHeaderField: "Content-Range"),
+            retryAfter: http?.value(forHTTPHeaderField: "Retry-After"),
+            offset: offset,
+            now: .now
+        )
+        func conclude(_ state: CountryMapStore.State) {
+            concluded.insert(task)
+            report(name, task: task, state)
+            completionHandler(.cancel)
+        }
+        switch answer {
+        case .append, .restart:
+            do {
+                if answer == .restart || offset == 0 {
+                    FileManager.default.createFile(atPath: part.path, contents: nil)
+                }
+                let file = try FileHandle(forWritingTo: part)
+                let written = try Int64(file.seekToEnd())
+                transfers[task] = Transfer(map: map, file: file, written: written)
+                completionHandler(.allow)
+            } catch {
+                conclude(.failed("The map could not be saved: \(error.localizedDescription)"))
+            }
+        case .complete:
+            conclude(CountryMapStore.finish(map))
+        case .paused(let until):
+            conclude(.paused(until: until))
+        case .refused(let message, let discardPart):
+            if discardPart {
+                try? FileManager.default.removeItem(at: part)
+            }
+            conclude(.failed(message))
         }
     }
 
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        let task = dataTask.taskIdentifier
+        guard var transfer = transfers[task], transfer.failure == nil else { return }
+        do {
+            // An answer longer than the file is wrong, and would only fill the phone.
+            guard transfer.written + Int64(data.count) <= transfer.map.bytes else {
+                transfer.failure = "The download was damaged. Download again."
+                try? FileManager.default.removeItem(at: CountryMapStore.part(for: transfer.map))
+                transfers[task] = transfer
+                dataTask.cancel()
+                return
+            }
+            try transfer.file.write(contentsOf: data)
+            transfer.written += Int64(data.count)
+        } catch {
+            transfer.failure = "The map could not be saved: \(error.localizedDescription)"
+            dataTask.cancel()
+        }
+        // Whole percents only, so the main actor is not called for every few kilobytes.
+        let percent = Int(min(transfer.written * 100 / transfer.map.bytes, 100))
+        if percent != transfer.percent, let name = dataTask.taskDescription {
+            transfer.percent = percent
+            let store = self.store
+            Task { @MainActor in
+                store?.progressed(name, task: task, fraction: Double(percent) / 100)
+            }
+        }
+        transfers[task] = transfer
+    }
+
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        guard let error, let name = task.taskDescription else { return }
         let identifier = task.taskIdentifier
-        let resumeData = (error as NSError).userInfo[NSURLSessionDownloadTaskResumeData] as? Data
+        let transfer = transfers.removeValue(forKey: identifier)
+        try? transfer?.file.close()
+        guard concluded.remove(identifier) == nil, let name = task.taskDescription else { return }
+        let state: CountryMapStore.State
+        if let failure = transfer?.failure {
+            state = .failed(failure)
+        } else if let error = error as? URLError {
+            if error.networkUnavailableReason == .constrained {
+                state = .failed("Low Data Mode is on, so the map was not downloaded.")
+            } else if transfer != nil {
+                state = .failed(CountryMapStore.stoppedMessage)
+            } else {
+                state = .failed("The download failed: \(error.localizedDescription)")
+            }
+        } else if let error {
+            state = .failed("The download failed: \(error.localizedDescription)")
+        } else if let transfer {
+            state = CountryMapStore.finish(transfer.map)
+        } else {
+            state = .failed("The map server sent nothing.")
+        }
+        report(name, task: identifier, state)
+    }
+
+    private func report(_ name: String, task: Int, _ state: CountryMapStore.State) {
         let store = self.store
         Task { @MainActor in
-            store?.brokeOff(name, task: identifier, error: error, resumeData: resumeData)
+            store?.finished(name, task: task, as: state)
         }
     }
 }
