@@ -42,8 +42,11 @@ app="$archive/Products/Applications/SpeedTrack.app"
 test -f "$app/PrivacyInfo.xcprivacy"
 
 # Without these files a map would be empty or have no names, and the app would not say so: the
-# outlines, the list of countries, MapLibre itself and its label font.
+# outlines, the list of countries, MapLibre itself and all 256 ranges of its label font, which the
+# map looks for at the top of the app. The licences must ship too.
 test -f "$app/OverviewMap.dat"
 test -f "$app/CountryMaps.json"
 test -x "$app/Frameworks/MapLibre.framework/MapLibre"
-test -n "$(find "$app" -name 'NotoSans-0-255.pbf' -print -quit)"
+test "$(find "$app" -maxdepth 1 -name 'NotoSans-*.pbf' | wc -l)" -eq 256
+test -f "$app/OFL.txt"
+test -f "$app/MapLibreLicense.txt"
