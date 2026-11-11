@@ -30,6 +30,9 @@ struct SettingsView: View {
                 } footer: {
                     Text("Each country downloads once from maps.1201.de, then works without internet. The map server sees which country is downloaded, not where you are. Map data © OpenStreetMap contributors, prepared by Protomaps.")
                 }
+                Section {
+                    NavigationLink("Licences") { LicencesView() }
+                }
             }
             .navigationTitle("Settings")
         }
@@ -86,5 +89,43 @@ private extension CountryMapStore.State {
 
     var isPaused: Bool {
         if case .paused = self { true } else { false }
+    }
+}
+
+/// The licences of what the app ships besides its own code: the map data, MapLibre Native and the
+/// label font.
+private struct LicencesView: View {
+    var body: some View {
+        List {
+            Section("Map data") {
+                Text("OpenStreetMap: © OpenStreetMap contributors, under the Open Database License. The country maps are prepared by Protomaps.")
+                Link("openstreetmap.org/copyright", destination: URL(string: "https://www.openstreetmap.org/copyright")!)
+                Text("Outlines: Natural Earth, which is in the public domain.")
+            }
+            Section("MapLibre Native") {
+                ForEach(Self.mapLibre.indices, id: \.self) { index in
+                    Text(Self.mapLibre[index]).font(.caption.monospaced())
+                }
+            }
+            Section("Noto Sans") {
+                ForEach(Self.notoSans.indices, id: \.self) { index in
+                    Text(Self.notoSans[index]).font(.caption.monospaced())
+                }
+            }
+        }
+        .navigationTitle("Licences")
+    }
+
+    private static let mapLibre = paragraphs(of: "MapLibreLicense")
+    private static let notoSans = paragraphs(of: "OFL")
+
+    /// A licence as paragraphs, one row each: MapLibre's runs to 100 KB, far more than one view can
+    /// draw at once.
+    private static func paragraphs(of name: String) -> [String] {
+        let text = Bundle.main.url(forResource: name, withExtension: "txt")
+            .flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? "Missing from the app."
+        return text.components(separatedBy: "\n\n")
+            .map { $0.trimmingCharacters(in: .newlines) }
+            .filter { !$0.isEmpty }
     }
 }
