@@ -19,7 +19,9 @@ struct PositionMap: View {
     @StateObject private var connectivity = Connectivity()
     @State private var camera: MapCameraPosition = .userLocation(fallback: .automatic)
     @State private var zoom = MapZoom()
-    @State private var visible: GeoBox?
+    /// Where the map looks. Only the overview needs it, so a change must not redraw the view: a
+    /// redraw while the map moves can take the map from the user's fingers.
+    @State private var visible = VisibleArea()
     @State private var overviewLines: [OverviewMap.Line] = []
     @State private var overviewPlaces: [OverviewMap.Place] = []
 
@@ -42,7 +44,7 @@ struct PositionMap: View {
         .mapStyle(.standard(pointsOfInterest: .excludingAll))
         .onMapCameraChange { context in
             let center = context.region.center
-            visible = .around(
+            visible.box = .around(
                 GeoPoint(latitude: center.latitude, longitude: center.longitude),
                 latitudeSpan: context.region.span.latitudeDelta * Self.overviewMargin,
                 longitudeSpan: context.region.span.longitudeDelta * Self.overviewMargin
@@ -101,16 +103,22 @@ struct PositionMap: View {
         }
     }
 
-    /// Online, Apple's map is better than the overview, whose lines would sit beside Apple's.
+    /// Online, Apple's map is better than the overview, whose lines would sit beside Apple's. The
+    /// lists change only when they must, since every change redraws the map.
     private func showOverview() {
-        guard connectivity.isOffline, let visible else {
-            overviewLines = []
-            overviewPlaces = []
+        guard connectivity.isOffline, let box = visible.box else {
+            if !overviewLines.isEmpty { overviewLines = [] }
+            if !overviewPlaces.isEmpty { overviewPlaces = [] }
             return
         }
-        overviewLines = OverviewMap.bundled.lines(in: visible)
-        overviewPlaces = OverviewMap.bundled.places(in: visible, limit: Self.placeLimit)
+        overviewLines = OverviewMap.bundled.lines(in: box)
+        overviewPlaces = OverviewMap.bundled.places(in: box, limit: Self.placeLimit)
     }
+}
+
+/// Held by reference, so that setting it does not redraw the view.
+private final class VisibleArea {
+    var box: GeoBox?
 }
 
 private extension GeoPoint {

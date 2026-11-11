@@ -12,15 +12,22 @@ struct ContentView: View {
                 let speed = monitor.speedometer.shown(in: unit, at: timeline.date)
                 VStack(spacing: 8) {
                     // The speed comes first, so it may take the whole width. A label too wide for it,
-                    // such as a pace, shrinks to fit.
-                    Text(speed.label)
-                        .font(.system(size: 200, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                        // Grey marks the last speed measured, and the line below says why no current
-                        // one comes in.
-                        .foregroundStyle(speed.isCurrent ? HierarchicalShapeStyle.primary : .secondary)
+                    // such as a pace, shrinks to fit. A shrunk label is also lower, and the map below
+                    // would change size with the unit or the speed, so a hidden digit at full size
+                    // keeps the height.
+                    ZStack {
+                        Text(verbatim: "0")
+                            .font(Self.speedFont)
+                            .hidden()
+                        Text(speed.label)
+                            .font(Self.speedFont)
+                            .monospacedDigit()
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            // Grey marks the last speed measured, and the line below says why no
+                            // current one comes in.
+                            .foregroundStyle(speed.isCurrent ? HierarchicalShapeStyle.primary : .secondary)
+                    }
                     Text(unit.title)
                         .font(.title2)
                         .foregroundStyle(.secondary)
@@ -32,12 +39,17 @@ struct ContentView: View {
                         .multilineTextAlignment(.center)
                         .lineLimit(2, reservesSpace: true)
                         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                    Text(monitor.speedometer.topSpeedLine(in: unit, at: timeline.date))
-                        .font(.title3)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.5)
-                        .padding(.top, 16)
+                    ZStack {
+                        Text(verbatim: "0")
+                            .font(.title3)
+                            .hidden()
+                        Text(monitor.speedometer.topSpeedLine(in: unit, at: timeline.date))
+                            .font(.title3)
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                    .padding(.top, 16)
                 }
             }
             // The speed keeps its full size, and the map gets the room that is left.
@@ -65,4 +77,6 @@ struct ContentView: View {
             }
         }
     }
+
+    private static let speedFont = Font.system(size: 200, weight: .bold, design: .rounded)
 }
