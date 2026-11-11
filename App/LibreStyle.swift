@@ -20,9 +20,9 @@ enum LibreStyle {
     ///   - countries: the downloaded files, drawn over the outlines, which they cover.
     static func json(glyphs: String, countries: [URL]) -> [String: Any] {
         var sources: [String: Any] = [
-            outlineSource: emptySource(attribution: "<a href=\"https://www.naturalearthdata.com\">Natural Earth</a>"),
-            outlinePlaceSource: emptySource(attribution: nil),
-            positionSource: emptySource(attribution: nil),
+            outlineSource: emptySource,
+            outlinePlaceSource: emptySource,
+            positionSource: emptySource,
         ]
         var layers: [[String: Any]] = [
             ["id": "background", "type": "background", "paint": ["background-color": land]],
@@ -31,11 +31,8 @@ enum LibreStyle {
         var places: [[String: Any]] = []
         for file in countries {
             let source = file.deletingPathExtension().lastPathComponent
-            sources[source] = [
-                "type": "vector",
-                "url": "pmtiles://" + file.absoluteString,
-                "attribution": "<a href=\"https://protomaps.com\">Protomaps</a> © <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
-            ]
+            // MapLibre takes the credit from the file, which says "© OpenStreetMap".
+            sources[source] = ["type": "vector", "url": "pmtiles://" + file.absoluteString]
             layers += countryLayers(source)
             places.append(countryPlaces(source))
         }
@@ -51,11 +48,9 @@ enum LibreStyle {
         return ["version": 8, "glyphs": glyphs, "sources": sources, "layers": layers]
     }
 
-    private static func emptySource(attribution: String?) -> [String: Any] {
-        var source: [String: Any] = ["type": "geojson", "data": ["type": "FeatureCollection", "features": [Any]()]]
-        source["attribution"] = attribution
-        return source
-    }
+    private static let emptySource: [String: Any] = [
+        "type": "geojson", "data": ["type": "FeatureCollection", "features": [Any]()],
+    ]
 
     /// The built-in outlines. Under a country's land they are covered, so they show only where no
     /// country is downloaded. Their `kind` is `OverviewMap.Kind`'s raw value.

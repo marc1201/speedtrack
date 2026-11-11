@@ -22,7 +22,18 @@ struct LibreMap: View {
             outlinesOnly: countries == nil,
             following: $following
         )
-        // The bottom corners hold MapLibre's credit for the map data, which must stay visible.
+        // MapLibre's (i) button in the bottom right lists every credit. OpenStreetMap's licence also
+        // asks for one that can be seen on the map itself.
+        .overlay(alignment: .bottomLeading) {
+            if countries?.isEmpty == false {
+                Link("© OpenStreetMap", destination: URL(string: "https://www.openstreetmap.org/copyright")!)
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(.thinMaterial, in: Capsule())
+                    .padding(6)
+            }
+        }
         .overlay(alignment: .topLeading) {
             if countries?.isEmpty == true {
                 MapCaption(text: "No country downloaded: see Settings")
