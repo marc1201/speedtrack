@@ -2,31 +2,17 @@
 
 What Marc has asked for and is not built yet.
 
-## A country map for offline use
+## More of the OpenStreetMap map
 
-Asked for on 2026-11-10. Today the map is Apple's. Without internet the app draws its built-in
-overview from Natural Earth: coastlines, borders, lakes, the larger railways and roads, and places,
-but no streets. A downloaded map of a country would show streets offline too.
+Built on 2026-11-11: Settings downloads Japan, South Korea, Portugal and Germany at zoom 12, about
+1.35 GB in all, from `maps.1201.de` on the VPS. Open:
 
-Research of 2026-11-10:
-
-- **Not Apple's map:** the offline maps a user downloads in Apple Maps are not available to other
-  apps, and Apple's licence lets an app cache Apple's map data only temporarily.
-- **OpenStreetMap:** its own tile server forbids offline use, so the data has to come from an
-  extract. A Protomaps basemap is under the ODbL and must credit "© OpenStreetMap". Sizes:
-
-  | Country | Regional detail (zoom 10) | Street level (zoom 14) |
-  |---|---|---|
-  | Portugal | about 15 MB | about 345 MB |
-  | Germany | about 157 MB | about 3.5 GB |
-
-- **Hosting:** Apple can host the downloads as Background Assets, which arrived with WWDC25 and come
-  with 200 GB of hosting in the developer membership. Otherwise we host them.
-- **Drawing:** MapLibre Native (BSD licence, about 9 MB, a third-party dependency), or MapKit tile
-  overlays with tiles we render ourselves. Tile overlays need MKMapView in place of SwiftUI's Map.
-
-Marc decides the data source and its hosting, whether to add a dependency, and how large a download
-may be.
+- **Hosting:** the VPS is "for now", in Marc's words. Cloudflare R2, with free egress and one
+  write-only token in Actions, was the first plan.
+- **Size:** Germany is 888 MB, mostly buildings, which the style shows only from zoom 13. Cutting
+  them out of the tiles would need a tool that rewrites vector tiles.
+- **More countries, fresher data:** each is one more run of `tools/extract-country-map.py` and a new
+  dated entry in `App/CountryMaps.json`, which ships with a release.
 
 ## App Store release
 

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5D0000000000000000000080 /* MapLibre in Frameworks */ = {isa = PBXBuildFile; productRef = 5D0000000000000000000082 /* MapLibre */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5D0000000000000000000021 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5D0000000000000000000080 /* MapLibre in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +107,9 @@
 				5D0000000000000000000040 /* App */,
 			);
 			name = SpeedTrack;
+			packageProductDependencies = (
+				5D0000000000000000000082 /* MapLibre */,
+			);
 			productName = SpeedTrack;
 			productReference = 5D0000000000000000000030 /* SpeedTrack.app */;
 			productType = "com.apple.product-type.application";
@@ -155,6 +163,9 @@
 			);
 			mainGroup = 5D0000000000000000000002;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5D0000000000000000000081 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5D0000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -348,6 +359,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5D0000000000000000000081 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/maplibre/maplibre-gl-native-distribution";
+			requirement = {
+				kind = exactVersion;
+				version = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5D0000000000000000000082 /* MapLibre */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5D0000000000000000000081 /* XCRemoteSwiftPackageReference "maplibre-gl-native-distribution" */;
+			productName = MapLibre;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5D0000000000000000000001 /* Project object */;
 }

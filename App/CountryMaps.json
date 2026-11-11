@@ -1,0 +1,28 @@
+{
+  "files": [
+    {
+      "name": "jp-z12-20261110.pmtiles",
+      "bytes": 269221607,
+      "sha256": "32d37141fada9a8ae14dcddb452e520e5a12529100161f2099c0b2699795130c",
+      "title": "Japan"
+    },
+    {
+      "name": "kr-z12-20261110.pmtiles",
+      "bytes": 99260295,
+      "sha256": "fae7e60ec9cc54bf677272ced1ecf79f17fb074161968a77afc3d50b63efd241",
+      "title": "South Korea"
+    },
+    {
+      "name": "pt-z12-20261110.pmtiles",
+      "bytes": 90611760,
+      "sha256": "37d55c9bc60e9c236d73f7c8d55c3353b912434330188ef207e0253c42cae79b",
+      "title": "Portugal"
+    },
+    {
+      "name": "de-z12-20261110.pmtiles",
+      "bytes": 887961169,
+      "sha256": "7e1afeedfa591f044ac4666d4bf24313a336de8f845b720317aa8d7c6f0ac1ce",
+      "title": "Germany"
+    }
+  ]
+}

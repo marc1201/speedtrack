@@ -32,4 +32,11 @@ struct MapZoom {
         let span = max(Self.steps[step], accuracy * Self.accuracyFactor)
         return offline ? max(span, Self.offlineSpan) : span
     }
+
+    /// MapLibre's zoom level that shows `span` metres across a view `points` wide, at a latitude.
+    /// At zoom 0 MapLibre draws the equator 512 points long, and each level doubles that.
+    static func zoomLevel(span: Double, latitude: Double, points: Double) -> Double {
+        let equator = 40_075_016.686
+        return log2(equator * cos(latitude * .pi / 180) * points / (512 * span))
+    }
 }

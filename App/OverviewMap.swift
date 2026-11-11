@@ -97,6 +97,10 @@ struct OverviewMap {
     static let detailLimit = 3.0
     /// The most lines drawn at once.
     static let lineLimit = 1_000
+    /// A map has room for a few names only, so only the most important places get one.
+    static let placeLimit = 12
+    /// How much more than the screen a map asks for, so its lines are there before they scroll in.
+    static let margin = 1.5
     static let empty = OverviewMap(lines: [], places: [])
 
     let lines: [Line]

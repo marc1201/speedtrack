@@ -3,6 +3,8 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var monitor = SpeedMonitor()
     @AppStorage("speedUnit") private var unit: SpeedUnit = .kilometersPerHour
+    @AppStorage("map") private var map: MapChoice = .apple
+    @EnvironmentObject private var countryMaps: CountryMapStore
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -61,7 +63,7 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
             .padding(.top, 24)
-            PositionMap(location: monitor.location, speed: monitor.speedometer.latest.metersPerSecond)
+            mapView
                 .frame(minHeight: 160)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .padding(.top, 8)
@@ -79,4 +81,17 @@ struct ContentView: View {
     }
 
     private static let speedFont = Font.system(size: 200, weight: .bold, design: .rounded)
+
+    @ViewBuilder
+    private var mapView: some View {
+        let speed = monitor.speedometer.latest.metersPerSecond
+        switch map {
+        case .apple:
+            PositionMap(location: monitor.location, speed: speed)
+        case .outlines:
+            LibreMap(location: monitor.location, speed: speed, countries: nil)
+        case .openStreetMap:
+            LibreMap(location: monitor.location, speed: speed, countries: countryMaps.readyFiles)
+        }
+    }
 }

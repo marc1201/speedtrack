@@ -9,23 +9,41 @@ project.
 
 ## Stack
 
-- Swift, SwiftUI, CoreLocation, CoreMotion and MapKit. iPhone only, iOS 17 or later. No
-  third-party dependencies.
+- Swift, SwiftUI, CoreLocation, CoreMotion, MapKit and MapLibre Native. iPhone only, iOS 17 or
+  later. MapLibre Native (BSD) is the one third-party dependency, by Marc's decision of 2026-11-11:
+  a binary Swift package with no build plugin, at exact version 7.0.0, pinned by revision in the
+  committed `Package.resolved`. CI resolves packages only from that file, as Xcode Cloud does.
 - `SpeedTrack.xcodeproj` is committed and is the one source of project settings, edited by hand
   because there is no Xcode here. Its synced folders pick up new files under `App/` and `Tests/`.
 - `SpeedReading.swift` (with `Speedometer` and `TopSpeedStore`), `LocationAccess`,
-  `StillnessDetector`, `MapZoom` and `OverviewMap.swift` hold the logic that needs only Foundation,
-  and are unit-tested; `ci/local-check.sh` lists their files. `SpeedMonitor` wraps CoreLocation and
-  CoreMotion, and `Connectivity` the Network framework's path monitor. `ContentView` shows the
-  number, the status line, the top speed of the day and `PositionMap`, the map.
-- Without internet the map draws `App/OverviewMap.dat`, a built-in overview from Natural Earth,
-  which is in the public domain. `tools/build-overview-map.py` makes it from pinned downloads, by
-  hand on the VPS, and its docstring has the steps.
+  `StillnessDetector`, `MapZoom`, `OverviewMap.swift`, `CountryMap` and `LibreStyle` hold the logic
+  that needs only Foundation, and are unit-tested; `ci/local-check.sh` lists their files.
+  `SpeedMonitor` wraps CoreLocation and CoreMotion, and `Connectivity` the Network framework's path
+  monitor. `ContentView` shows the number, the status line, the top speed of the day and the map;
+  `SettingsView`, the second tab, chooses the map and downloads countries.
+- The map is one of three, chosen in Settings (`MapChoice`). Apple's (`PositionMap`) draws the
+  built-in overview on top without internet. Outlines is that overview alone, `App/OverviewMap.dat`
+  from Natural Earth, which is in the public domain. OpenStreetMap draws downloaded countries over
+  the outlines. Outlines and OpenStreetMap are drawn by MapLibre (`LibreMap`) from files on the
+  phone only: its style (`LibreStyle`) names no URL on the internet.
+- `tools/build-overview-map.py` makes the overview from pinned downloads, by hand on the VPS, and its
+  docstring has the steps. `tools/fetch-map-glyphs.sh` fetches the label font, Noto Sans under the
+  SIL Open Font License, into `App/MapGlyphs/`.
+- A country is a PMTiles file cut from Protomaps' daily OpenStreetMap build (ODbL, so the map credits
+  OpenStreetMap) by `tools/extract-country-map.py`, by hand on the VPS, into `build/maps/`.
+  `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app checks every
+  download against that list, and the box's maps verb of the 1201-assistant session publishes
+  exactly those files at `https://maps.1201.de/`, by Marc's decision of 2026-11-11. That server
+  refuses downloads beyond 100 GB a month and 10 GB a day, answering 503 with Retry-After, and keeps
+  no request log. Never change a file once its hash is in the list: a new build gets a new dated
+  name. Once a publish is confirmed, delete the copies in `build/maps/` to free the disk.
 - `ROADMAP.md` holds what Marc has asked for and is not built yet, with the research behind it.
 - Nothing from location is stored except the top speed of the day and its time, which stay in the
   app's own settings on the phone, by Marc's decision of 2026-11-08. The app's own code sends nothing
-  anywhere. The map is Apple's, by Marc's decision of 2026-11-10: MapKit loads the area on screen
-  from Apple's servers, so Apple sees that area, and the system may keep it in its cache.
+  anywhere, except that a tap in Settings downloads a country's file from `maps.1201.de`, which
+  learns the phone's address and the country, not the position (2026-11-11). Apple's map, by Marc's
+  decision of 2026-11-10: MapKit loads the area on screen from Apple's servers, so Apple sees that
+  area, and the system may keep it in its cache.
 
 ## There is no Xcode here
 

@@ -1,6 +1,20 @@
 import XCTest
 @testable import SpeedTrack
 
+final class MapZoomLevelTests: XCTestCase {
+    func testAZoomLevelShowsTheSpanAcrossTheView() {
+        // At zoom 0 MapLibre draws the equator 512 points long.
+        XCTAssertEqual(MapZoom.zoomLevel(span: 40_075_016.686, latitude: 0, points: 512), 0, accuracy: 1e-9)
+        // Half the span is one level closer, and so is twice the width.
+        XCTAssertEqual(MapZoom.zoomLevel(span: 20_037_508.343, latitude: 0, points: 512), 1, accuracy: 1e-9)
+        XCTAssertEqual(MapZoom.zoomLevel(span: 40_075_016.686, latitude: 0, points: 1_024), 1, accuracy: 1e-9)
+        // At 60 degrees a degree of longitude is half as long, so the same span is one level further out.
+        XCTAssertEqual(MapZoom.zoomLevel(span: 20_037_508.343, latitude: 60, points: 512), 0, accuracy: 1e-9)
+        // A phone's map 350 points wide, showing 4 km.
+        XCTAssertEqual(MapZoom.zoomLevel(span: 4_000, latitude: 38.7, points: 350), 12.38, accuracy: 0.01)
+    }
+}
+
 final class MapZoomTests: XCTestCase {
     private func span(
         _ kilometersPerHour: Double?,
