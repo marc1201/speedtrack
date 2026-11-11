@@ -92,6 +92,8 @@ private struct LibreMapView: UIViewRepresentable {
         private var countries: [URL] = []
         private var styleFile: URL?
         private var location: CLLocation?
+        private var speed: Double?
+        private var outlinesOnly = true
         private var shownPosition: CLLocation?
         /// The fix the camera last moved to. Nil while the map does not follow, so it moves at once
         /// when it follows again.
@@ -129,13 +131,21 @@ private struct LibreMapView: UIViewRepresentable {
                 view.styleURL = style(for: countries)
             }
             self.location = location
+            self.speed = speed
+            self.outlinesOnly = outlinesOnly
             showPosition(in: view)
             guard following else {
                 followed = nil
                 return
             }
+            follow(in: view)
+        }
+
+        /// Moves the map to a fix it has not shown yet. A map not laid out yet has no size to fit the
+        /// span to, so it waits: MapLibre reports the first layout as a change of region.
+        private func follow(in view: MLNMapView) {
             let side = Double(min(view.bounds.width, view.bounds.height))
-            guard let location, location !== followed, side > 0 else { return }
+            guard following.wrappedValue, let location, location !== followed, side > 0 else { return }
             followed = location
             // The outlines are drawn for wide views, as they are on Apple's map without internet.
             let span = zoom.span(speed: speed, accuracy: location.horizontalAccuracy, offline: outlinesOnly)
@@ -209,6 +219,15 @@ private struct LibreMapView: UIViewRepresentable {
         nonisolated func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
             MainActor.assumeIsolated {
                 showOutlines(in: mapView)
+                // Outside this callback, which can come from inside a layout pass.
+                if followed == nil {
+                    DispatchQueue.main.async { [weak self, weak mapView] in
+                        MainActor.assumeIsolated {
+                            guard let self, let mapView else { return }
+                            self.follow(in: mapView)
+                        }
+                    }
+                }
             }
         }
     }
