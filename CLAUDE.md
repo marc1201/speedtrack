@@ -27,8 +27,12 @@ project.
   the outlines. Outlines and OpenStreetMap are drawn by MapLibre (`LibreMap`) from files on the
   phone only: its style (`LibreStyle`) names no URL on the internet.
 - `tools/build-overview-map.py` makes the overview from pinned downloads, by hand on the VPS, and its
-  docstring has the steps. `tools/fetch-map-glyphs.sh` fetches the label font, Noto Sans under the
-  SIL Open Font License, into `App/MapGlyphs/`.
+  docstring has the steps. `tools/fetch-map-assets.sh` fetches, pinned, the label font into
+  `App/MapGlyphs/` (Noto Sans under the SIL Open Font License, all 256 glyph ranges, because MapLibre
+  stops drawing a tile while a label waits for a range it cannot load) and MapLibre's licence into
+  `App/Licences/`. Settings shows both licences and the map data's credit, and the OpenStreetMap
+  map carries a visible "© OpenStreetMap", as the data's licence asks. Both credits link to
+  OpenStreetMap's copyright page, which Safari opens on a tap.
 - A country is a PMTiles file cut from Protomaps' daily OpenStreetMap build (ODbL, so the map credits
   OpenStreetMap) by `tools/extract-country-map.py`, by hand on the VPS, into `build/maps/`.
   `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app writes a download

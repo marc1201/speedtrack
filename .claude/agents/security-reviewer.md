@@ -46,11 +46,14 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    to another host, sends anything about the user, or skips the check is HIGH. MapKit loading
    Apple's map is the other exception (2026-11-10), and the path monitor in `Connectivity` only
    watches whether a network exists. MapLibre draws only files on the phone: a source, glyph or
-   sprite URL in `LibreStyle` that is not a `file://` URL is HIGH (the links in attributions are
-   text MapLibre shows). MapLibre Native is the one third-party dependency (invariant 3).
+   sprite URL in `LibreStyle` that is not a `file://` URL is HIGH. The "© OpenStreetMap" credit on
+   the map and on the Licences page are links that hand the fixed address
+   `https://www.openstreetmap.org/copyright` to Safari on a tap, as do the credits behind
+   MapLibre's (i) button; the app itself requests nothing there. MapLibre Native is the one
+   third-party dependency (invariant 3).
    `App/OverviewMap.dat` is data from Natural Earth, in the public domain, made by
-   `tools/build-overview-map.py` from inputs pinned by SHA-256. The label font comes from
-   `tools/fetch-map-glyphs.sh`, also pinned by SHA-256. The country files are cut by
+   `tools/build-overview-map.py` from inputs pinned by SHA-256. The label font and MapLibre's
+   licence come from `tools/fetch-map-assets.sh`, also pinned by SHA-256. The country files are cut by
    `tools/extract-country-map.py` from Protomaps' daily OpenStreetMap build, which is too large to
    pin by hash: its output is what is pinned, in `App/CountryMaps.json`. These tools run only by
    hand on the VPS, never in CI or on Apple's machines. Another network call, dependency or source
