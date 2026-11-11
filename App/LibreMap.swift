@@ -167,11 +167,13 @@ private struct LibreMapView: UIViewRepresentable {
             source.shape = point
         }
 
-        /// The outlines in and around the view, as Apple's map draws them without internet.
+        /// The outlines in and around the view, as Apple's map draws them without internet, and
+        /// once the map is zoomed out far enough, the names of countries.
         private func showOutlines(in view: MLNMapView) {
             guard let style = view.style,
                   let lines = style.source(withIdentifier: LibreStyle.outlineSource) as? MLNShapeSource,
-                  let places = style.source(withIdentifier: LibreStyle.outlinePlaceSource) as? MLNShapeSource
+                  let places = style.source(withIdentifier: LibreStyle.outlinePlaceSource) as? MLNShapeSource,
+                  let countryNames = style.source(withIdentifier: LibreStyle.outlineCountrySource) as? MLNShapeSource
             else { return }
             let bounds = view.visibleCoordinateBounds
             let longitudeSpan = bounds.ne.longitude - bounds.sw.longitude
@@ -195,6 +197,14 @@ private struct LibreMapView: UIViewRepresentable {
                 return feature
             }
             places.shape = MLNShapeCollectionFeature(shapes: placeFeatures)
+            let nameFeatures: [MLNShape & MLNFeature] = overview.countryNames(in: box, zoom: view.zoomLevel)
+                .enumerated().map { order, country in
+                    let feature = MLNPointFeature()
+                    feature.coordinate = country.point.coordinate
+                    feature.attributes = ["name": country.name, "order": order]
+                    return feature
+                }
+            countryNames.shape = MLNShapeCollectionFeature(shapes: nameFeatures)
         }
 
         nonisolated func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {

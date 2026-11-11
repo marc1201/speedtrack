@@ -5,9 +5,11 @@ import Foundation
 /// font from the app's glyph files. So MapLibre never goes online. The countries use the layers of
 /// Protomaps' basemap, version 4: https://docs.protomaps.com/basemaps/layers
 enum LibreStyle {
-    /// Sources the map fills in itself: the outlines in view, their places, and the position.
+    /// Sources the map fills in itself: the outlines in view, their places and country names, and
+    /// the position.
     static let outlineSource = "outlines"
     static let outlinePlaceSource = "outline-places"
+    static let outlineCountrySource = "outline-countries"
     static let positionSource = "position"
 
     private static let font = ["Noto Sans Regular"]
@@ -22,6 +24,7 @@ enum LibreStyle {
         var sources: [String: Any] = [
             outlineSource: emptySource,
             outlinePlaceSource: emptySource,
+            outlineCountrySource: emptySource,
             positionSource: emptySource,
         ]
         var layers: [[String: Any]] = [
@@ -73,6 +76,18 @@ enum LibreStyle {
                 "id": "outline-places", "type": "symbol", "source": outlinePlaceSource,
                 "layout": ["text-field": ["get", "name"], "text-font": font, "text-size": 12, "text-max-width": 8],
                 "paint": ["text-color": "#333333", "text-halo-color": "#ffffff", "text-halo-width": 1.5],
+            ],
+            // Above the places, because MapLibre places the upper layer's names first: where a
+            // country's name and a place's do not both fit, the country's shows. `order` is 0 for the
+            // most important country.
+            [
+                "id": "outline-countries", "type": "symbol", "source": outlineCountrySource,
+                "layout": [
+                    "text-field": ["get", "name"], "text-font": font, "text-size": 11,
+                    "text-transform": "uppercase", "text-letter-spacing": 0.1, "text-max-width": 7,
+                    "symbol-sort-key": ["get", "order"],
+                ],
+                "paint": ["text-color": "#6a5a99", "text-halo-color": "#ffffff", "text-halo-width": 1.5],
             ],
         ]
     }

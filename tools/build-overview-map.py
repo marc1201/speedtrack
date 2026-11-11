@@ -8,7 +8,8 @@ downloads are untrusted data:
 
     base=https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson
     for f in ne_10m_coastline ne_10m_admin_0_boundary_lines_land ne_10m_lakes \\
-             ne_10m_railroads ne_10m_roads ne_10m_populated_places_simple; do
+             ne_10m_railroads ne_10m_roads ne_10m_populated_places_simple \\
+             ne_50m_admin_0_countries; do
         curl -fsSL -o "$dir/$f.geojson" "$base/$f.geojson"
     done
     python3 -I -B tools/build-overview-map.py "$dir" App/OverviewMap.dat
@@ -16,11 +17,12 @@ downloads are untrusted data:
 Each file must match its SHA-256 below, so the input never changes unnoticed. The script runs only
 by hand on the VPS, never in CI or on Apple's machines: the app ships its output as plain data.
 
-File format, version 1. Integers are little-endian. Coordinates are in units of 1/10,000 degree,
+File format, version 2. Integers are little-endian. Coordinates are in units of 1/10,000 degree,
 about 11 m, which is far finer than the data. Lines come sorted by kind, so the app can cap how many
-it draws and keep the more important ones.
+it draws and keep the more important ones. Country names come from the 50m countries, because the
+110m file leaves out small countries such as Andorra, Bahrain and Malta.
 
-    "SPOM", version: UInt8 = 1
+    "SPOM", version: UInt8 = 2
     lineCount: UInt32, then for each line:
         kind: UInt8 (1 coastline, 2 border, 3 lake, 4 railway, 5 road)
         pointCount: UInt16, at least 2
@@ -29,6 +31,11 @@ it draws and keep the more important ones.
     placeCount: UInt32, then for each place, the most important first:
         rank: UInt8, 0 for the most important
         latitude Int32, longitude Int32
+        nameLength: UInt8, then the name in UTF-8
+    countryCount: UInt32, then for each country's name, the most important first:
+        first zoom, last zoom: UInt8 each, in tenths, the zoom levels at which Natural Earth shows
+            the name
+        latitude Int32, longitude Int32, where Natural Earth puts the name
         nameLength: UInt8, then the name in UTF-8
 """
 
@@ -47,6 +54,7 @@ SOURCES = {
     "ne_10m_railroads": "a0962d7866060ae3e24df255f6d662389ac9ba7e0df40cf329c2281190b861e6",
     "ne_10m_roads": "66a0c7b438e92fd124822cc5921cfa11042f48c294ade5e0f03f2c6640fd0248",
     "ne_10m_populated_places_simple": "fd3fa867a320cbd5c5b6bb5bc550afeec2939fb2cef688e508007282a55ac42f",
+    "ne_50m_admin_0_countries": "3e458fc036ad0a66411f2c1e6cac49c5d7bfb81cb1123bc513b22511a2b7fdeb",
 }
 
 # The app shows the overview at 64 km across or more, where 300 m is about two points on screen.
@@ -68,6 +76,7 @@ LAYERS = [
 ]
 LAKE = 3
 PLACES = "ne_10m_populated_places_simple"
+COUNTRIES = "ne_50m_admin_0_countries"
 
 
 def load(directory, name):
@@ -195,11 +204,23 @@ def build(directory):
         places.append((properties["scalerank"], -(properties.get("pop_max") or 0), name,
                        round(latitude * UNITS_PER_DEGREE), round(longitude * UNITS_PER_DEGREE)))
     places.sort()
-    return lines, places
+    countries = []
+    for feature in load(directory, COUNTRIES):
+        properties = feature["properties"]
+        name = unicodedata.normalize("NFC", properties.get("NAME") or "").encode()
+        if not name or len(name) > 255:
+            continue
+        zooms = (round(properties["MIN_LABEL"] * 10), round(properties["MAX_LABEL"] * 10))
+        point = (round(properties["LABEL_Y"] * UNITS_PER_DEGREE), round(properties["LABEL_X"] * UNITS_PER_DEGREE))
+        assert 0 <= zooms[0] <= zooms[1] <= 255, name
+        assert abs(point[0]) <= 90 * UNITS_PER_DEGREE and abs(point[1]) <= 180 * UNITS_PER_DEGREE, name
+        countries.append((properties["LABELRANK"], zooms, name, *point))
+    countries.sort()
+    return lines, places, countries
 
 
-def encode(lines, places):
-    out = bytearray(b"SPOM") + struct.pack("<BI", 1, len(lines))
+def encode(lines, places, countries):
+    out = bytearray(b"SPOM") + struct.pack("<BI", 2, len(lines))
     for kind, points in lines:
         out += struct.pack("<BHii", kind, len(points), *points[0])
         for (latitude, longitude), (next_latitude, next_longitude) in zip(points, points[1:]):
@@ -207,12 +228,15 @@ def encode(lines, places):
     out += struct.pack("<I", len(places))
     for rank, _, name, latitude, longitude in places:
         out += struct.pack("<BiiB", rank, latitude, longitude, len(name)) + name
+    out += struct.pack("<I", len(countries))
+    for _, (first, last), name, latitude, longitude in countries:
+        out += struct.pack("<BBiiB", first, last, latitude, longitude, len(name)) + name
     return bytes(out)
 
 
 def decode(data):
     """Reads the file back, so a writer bug fails here and not on a phone."""
-    assert data[:5] == b"SPOM\x01"
+    assert data[:5] == b"SPOM\x02"
     (count,) = struct.unpack_from("<I", data, 5)
     offset, lines = 9, []
     for _ in range(count):
@@ -233,23 +257,33 @@ def decode(data):
         offset += 10
         places.append((rank, data[offset:offset + length], latitude, longitude))
         offset += length
+    (count,) = struct.unpack_from("<I", data, offset)
+    offset += 4
+    countries = []
+    for _ in range(count):
+        first, last, latitude, longitude, length = struct.unpack_from("<BBiiB", data, offset)
+        offset += 11
+        countries.append(((first, last), data[offset:offset + length], latitude, longitude))
+        offset += length
     assert offset == len(data)
-    return lines, places
+    return lines, places, countries
 
 
 def main():
     if len(sys.argv) != 3:
         sys.exit("usage: build-overview-map.py <directory with the GeoJSON files> <output file>")
-    lines, places = build(Path(sys.argv[1]))
-    data = encode(lines, places)
-    read_lines, read_places = decode(data)
+    lines, places, countries = build(Path(sys.argv[1]))
+    data = encode(lines, places, countries)
+    read_lines, read_places, read_countries = decode(data)
     assert read_lines == lines
     assert read_places == [(rank, name, latitude, longitude) for rank, _, name, latitude, longitude in places]
+    assert read_countries == [(zooms, name, latitude, longitude) for _, zooms, name, latitude, longitude in countries]
     Path(sys.argv[2]).write_bytes(data)
     for kind, name, _ in LAYERS:
         chosen = [points for line_kind, points in lines if line_kind == kind]
         print(f"{name}: {len(chosen)} lines, {sum(map(len, chosen))} points")
     print(f"{PLACES}: {len(places)} places")
+    print(f"{COUNTRIES}: {len(countries)} names")
     print(f"{sys.argv[2]}: {len(data)} bytes")
 
 

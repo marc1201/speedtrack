@@ -27,7 +27,10 @@ final class LibreStyleTests: XCTestCase {
 
     func testTheOutlinesAloneNeedNoFile() {
         let style = LibreStyle.json(glyphs: glyphs, countries: [])
-        XCTAssertEqual(Set(sources(style).keys), [LibreStyle.outlineSource, LibreStyle.outlinePlaceSource, LibreStyle.positionSource])
+        XCTAssertEqual(Set(sources(style).keys), [
+            LibreStyle.outlineSource, LibreStyle.outlinePlaceSource, LibreStyle.outlineCountrySource,
+            LibreStyle.positionSource,
+        ])
         XCTAssertEqual(style["glyphs"] as? String, glyphs)
     }
 
@@ -48,5 +51,7 @@ final class LibreStyleTests: XCTestCase {
         let land = ids.firstIndex(of: "jp-z12-20261110-earth") ?? .min
         XCTAssertLessThan(outlines, land)
         XCTAssertEqual(ids.last, "position")
+        // MapLibre places the upper layer's names first, so a country's name wins over a place's.
+        XCTAssertLessThan(ids.firstIndex(of: "outline-places") ?? .max, ids.firstIndex(of: "outline-countries") ?? .min)
     }
 }

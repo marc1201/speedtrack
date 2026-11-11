@@ -62,8 +62,8 @@ struct GeoBox: Equatable {
 }
 
 /// The map the app draws when Apple's map has no internet: coastlines, borders, lakes, the larger
-/// railways and roads, and places, from Natural Earth, which is in the public domain.
-/// `tools/build-overview-map.py` makes the file and describes its format.
+/// railways and roads, places, and the names of countries, from Natural Earth, which is in the
+/// public domain. `tools/build-overview-map.py` makes the file and describes its format.
 struct OverviewMap {
     /// In the order the file sorts lines, the most important first.
     enum Kind: UInt8, CaseIterable {
@@ -92,6 +92,14 @@ struct OverviewMap {
         let point: GeoPoint
     }
 
+    struct CountryName: Identifiable {
+        let id: Int
+        let name: String
+        let point: GeoPoint
+        /// The zoom levels at which Natural Earth shows the name.
+        let zooms: ClosedRange<Double>
+    }
+
     struct FormatError: Error {}
 
     /// Degrees of latitude above which a view leaves out railways and roads.
@@ -107,11 +115,20 @@ struct OverviewMap {
     static let placeLimit = 12
     /// How much more than the screen a map asks for, so its lines are there before they scroll in.
     static let margin = 1.5
-    static let empty = OverviewMap(lines: [], places: [])
+    /// A country's name shows this many zoom levels further out than Natural Earth's levels say: a
+    /// phone's map is small, and the name helps most when much of the world is in view.
+    static let countryNameShift = 2.0
+    /// No country is named closer in than this zoom level, where a phone's map is still several
+    /// hundred kilometres across. Natural Earth names small countries far closer in, and while the
+    /// map follows, such a name would cover the towns: VATICAN over Rome.
+    static let countryNameMaxZoom = 5.0
+    static let empty = OverviewMap(lines: [], places: [], countryNames: [])
 
     let lines: [Line]
     /// The most important first.
     let places: [Place]
+    /// The most important first.
+    let countryNames: [CountryName]
 
     /// The lines in a view that can be seen, whole kinds in order of importance. A kind that does not
     /// fit under the limit is left out, and so is every kind after it: a border drawn partway looks
@@ -137,6 +154,12 @@ struct OverviewMap {
     func places(in box: GeoBox, limit: Int) -> [Place] {
         Array(places.lazy.filter { box.contains($0.point) }.prefix(limit))
     }
+
+    /// The countries to name in a view at MapLibre's zoom level `zoom`, the most important first.
+    func countryNames(in box: GeoBox, zoom: Double) -> [CountryName] {
+        guard zoom <= Self.countryNameMaxZoom else { return [] }
+        return countryNames.filter { $0.zooms.contains(zoom + Self.countryNameShift) && box.contains($0.point) }
+    }
 }
 
 extension OverviewMap {
@@ -155,7 +178,7 @@ extension OverviewMap {
         var reader = ByteReader(bytes: [UInt8](data))
         let magic = try reader.take(4)
         let version = try reader.uint8()
-        guard magic.elementsEqual("SPOM".utf8), version == 1 else { throw FormatError() }
+        guard magic.elementsEqual("SPOM".utf8), version == 2 else { throw FormatError() }
         var lines: [Line] = []
         let lineCount = try reader.uint32()
         for id in 0..<Int(lineCount) {
@@ -182,8 +205,22 @@ extension OverviewMap {
             guard let name = try String(bytes: reader.take(length), encoding: .utf8) else { throw FormatError() }
             try places.append(Place(id: id, name: name, rank: rank, point: Self.point(latitude, longitude)))
         }
+        var countryNames: [CountryName] = []
+        let countryCount = try reader.uint32()
+        for id in 0..<Int(countryCount) {
+            let first = try Double(reader.uint8()) / 10
+            let last = try Double(reader.uint8()) / 10
+            guard first <= last else { throw FormatError() }
+            let latitude = try Int(reader.int32())
+            let longitude = try Int(reader.int32())
+            let length = try Int(reader.uint8())
+            guard let name = try String(bytes: reader.take(length), encoding: .utf8) else { throw FormatError() }
+            try countryNames.append(CountryName(
+                id: id, name: name, point: Self.point(latitude, longitude), zooms: first...last
+            ))
+        }
         guard reader.isAtEnd else { throw FormatError() }
-        self.init(lines: lines, places: places)
+        self.init(lines: lines, places: places, countryNames: countryNames)
     }
 
     /// The file counts in units of 1/10,000 degree.
