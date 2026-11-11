@@ -181,7 +181,7 @@ private struct LibreMapView: UIViewRepresentable {
                 longitudeSpan: (longitudeSpan < 0 ? longitudeSpan + 360 : longitudeSpan) * OverviewMap.margin
             )
             let overview = OverviewMap.bundled
-            let lineFeatures: [MLNShape & MLNFeature] = overview.lines(in: box).map { line in
+            let lineFeatures: [MLNShape & MLNFeature] = overview.lines(in: box, limit: .max).map { line in
                 let coordinates = line.points.map(\.coordinate)
                 let feature = MLNPolylineFeature(coordinates: coordinates, count: UInt(coordinates.count))
                 feature.attributes = ["kind": Int(line.kind.rawValue)]

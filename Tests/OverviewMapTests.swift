@@ -92,7 +92,7 @@ final class OverviewMapTests: XCTestCase {
     }
 
     func testAKindThatDoesNotFitIsLeftOutWithTheKindsAfterIt() throws {
-        let points: [Point] = [(0, 0), (10, 10)]
+        let points: [Point] = [(0, 0), (100, 100)]
         let coastline: (kind: UInt8, points: [Point]) = (kind: 1, points: points)
         let border: (kind: UInt8, points: [Point]) = (kind: 2, points: points)
         let lake: (kind: UInt8, points: [Point]) = (kind: 3, points: points)
@@ -101,6 +101,20 @@ final class OverviewMapTests: XCTestCase {
         XCTAssertEqual(try map(file(lines: fitting)).lines(in: view).count, OverviewMap.lineLimit)
         let tooMany = [coastline] + Array(repeating: border, count: OverviewMap.lineLimit) + [lake]
         XCTAssertEqual(try map(file(lines: tooMany)).lines(in: view).map(\.kind), [.coastline])
+        // MapLibre sets no limit, and gets them all.
+        XCTAssertEqual(try map(file(lines: tooMany)).lines(in: view, limit: .max).count, tooMany.count)
+    }
+
+    func testLeavesOutLinesTooSmallToSee() throws {
+        // In a view 40 degrees across, a line under a tenth of a degree both ways is under a point.
+        let overview = try map(file(lines: [
+            (kind: 1, points: [(0, 0), (900, 900)]),
+            (kind: 1, points: [(0, 0), (1_100, 1_100)]),
+            // A border running north is narrow, but tall enough to see.
+            (kind: 2, points: [(0, 0), (20_000, 100)]),
+        ]))
+        XCTAssertEqual(overview.lines(in: box(0, 0, span: 40)).map(\.id), [1, 2])
+        XCTAssertEqual(overview.lines(in: box(0, 0, span: 4)).map(\.id), [0, 1, 2])
     }
 
     func testNamesTheMostImportantPlacesInView() throws {
@@ -117,6 +131,7 @@ final class OverviewMapTests: XCTestCase {
     func testABoxCanCrossTheDateLine() {
         let view = box(0, 179.5, span: 2)
         XCTAssertEqual(view, GeoBox(south: -1, north: 1, west: 178.5, east: -179.5))
+        XCTAssertEqual(view.longitudeSpan, 2, accuracy: 1e-9)
         XCTAssertTrue(view.contains(GeoPoint(latitude: 0, longitude: -179.8)))
         XCTAssertTrue(view.contains(GeoPoint(latitude: 0, longitude: 179)))
         XCTAssertFalse(view.contains(GeoPoint(latitude: 0, longitude: -179)))
@@ -129,6 +144,7 @@ final class OverviewMapTests: XCTestCase {
         let world = GeoBox.around(GeoPoint(latitude: 0, longitude: 10), latitudeSpan: 10, longitudeSpan: 400)
         XCTAssertEqual(world.west, -180)
         XCTAssertEqual(world.east, 180)
+        XCTAssertEqual(world.longitudeSpan, 360)
     }
 
     #if os(iOS)
@@ -140,6 +156,16 @@ final class OverviewMapTests: XCTestCase {
         let lisbon = box(38.72, -9.14, span: 0.6)
         XCTAssertTrue(overview.lines(in: lisbon).contains { $0.kind == .coastline })
         XCTAssertTrue(overview.places(in: lisbon, limit: 12).contains { $0.name == "Lisbon" })
+    }
+
+    /// Zoomed out over East Asia or the world, the coastlines once had so many islands in view
+    /// that the limit left out every line.
+    func testAWideViewKeepsItsCoastlines() {
+        let overview = OverviewMap.bundled
+        let eastAsia = GeoBox.around(GeoPoint(latitude: 24, longitude: 118), latitudeSpan: 67, longitudeSpan: 97)
+        XCTAssertTrue(overview.lines(in: eastAsia).contains { $0.kind == .coastline })
+        let world = GeoBox.around(GeoPoint(latitude: 10, longitude: 160), latitudeSpan: 170, longitudeSpan: 400)
+        XCTAssertTrue(overview.lines(in: world, limit: .max).contains { $0.kind == .coastline })
     }
     #endif
 }

@@ -39,6 +39,7 @@ struct GeoBox: Equatable {
     }
 
     var latitudeSpan: Double { north - south }
+    var longitudeSpan: Double { west <= east ? east - west : 360 - west + east }
 
     func contains(_ point: GeoPoint) -> Bool {
         south <= point.latitude && point.latitude <= north
@@ -95,7 +96,12 @@ struct OverviewMap {
 
     /// Degrees of latitude above which a view leaves out railways and roads.
     static let detailLimit = 3.0
-    /// The most lines drawn at once.
+    /// A line both shorter and narrower than this share of a view is under about a point on a
+    /// phone's map, so it is left out. A wide view would otherwise hold thousands of islands too
+    /// small to see, and those would crowd out the coastlines that can be seen.
+    static let smallestShare = 1.0 / 400
+    /// The most lines Apple's map draws at once: each is an overlay of its own, and many slow it
+    /// down. MapLibre cuts the lines into tiles itself, and takes every line in view.
     static let lineLimit = 1_000
     /// A map has room for a few names only, so only the most important places get one.
     static let placeLimit = 12
@@ -107,16 +113,22 @@ struct OverviewMap {
     /// The most important first.
     let places: [Place]
 
-    /// The lines in a view, whole kinds in order of importance. A kind that does not fit under the
-    /// limit is left out, and so is every kind after it: a border drawn partway looks broken, and a
-    /// lake without the coastline looks lost.
-    func lines(in box: GeoBox) -> [Line] {
+    /// The lines in a view that can be seen, whole kinds in order of importance. A kind that does not
+    /// fit under the limit is left out, and so is every kind after it: a border drawn partway looks
+    /// broken, and a lake without the coastline looks lost.
+    func lines(in box: GeoBox, limit: Int = lineLimit) -> [Line] {
         let detailed = box.latitudeSpan <= Self.detailLimit
-        let inView = lines.filter { (detailed || !$0.kind.isDetail) && $0.bounds.intersects(box) }
+        let minimumHeight = box.latitudeSpan * Self.smallestShare
+        let minimumWidth = box.longitudeSpan * Self.smallestShare
+        let inView = lines.filter { line in
+            (detailed || !line.kind.isDetail)
+                && (line.bounds.latitudeSpan >= minimumHeight || line.bounds.longitudeSpan >= minimumWidth)
+                && line.bounds.intersects(box)
+        }
         var shown: [Line] = []
         for kind in Kind.allCases {
             let ofKind = inView.filter { $0.kind == kind }
-            guard shown.count + ofKind.count <= Self.lineLimit else { break }
+            guard shown.count + ofKind.count <= limit else { break }
             shown += ofKind
         }
         return shown
