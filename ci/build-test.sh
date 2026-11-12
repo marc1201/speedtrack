@@ -48,6 +48,9 @@ app="$archive/Products/Applications/SpeedTrack.app"
 
 # Without this file in the app, App Store Connect can refuse the build for using UserDefaults.
 test -f "$app/PrivacyInfo.xcprivacy"
+# MapLibre declares its own required-reason APIs (file timestamps, boot time, UserDefaults) in its
+# own manifest. A version that dropped it would get the upload refused.
+test -f "$app/Frameworks/MapLibre.framework/PrivacyInfo.xcprivacy"
 
 # Without these files a map would be empty or have no names, and the app would not say so: the
 # outlines, the list of countries, MapLibre itself and all 256 ranges of its label font, which the
