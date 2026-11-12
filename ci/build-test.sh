@@ -4,12 +4,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Settings links files of this repository on main, such as the privacy policy, which App Review
-# requires. A renamed file would leave its link dead.
-pages="$(grep -ohE 'blob/main/[A-Za-z0-9._/-]+' App/*.swift | sed 's|^blob/main/||' | sort -u)"
+# Settings and the App Store listing link files of this repository on main, such as the privacy
+# policy, which App Review requires. A renamed file would leave its link dead.
+pages="$(grep -ohE 'blob/main/[A-Za-z0-9._/-]+' App/*.swift APP_STORE.md | sed 's|^blob/main/||' | sort -u)"
 test -n "$pages"
 for page in $pages; do
-  test -f "$page" || { echo "Settings links $page, which is not in the repository" >&2; exit 1; }
+  test -f "$page" || { echo "A link names $page, which is not in the repository" >&2; exit 1; }
 done
 
 xcodebuild -version

@@ -16,20 +16,16 @@ Built on 2026-11-11: Settings downloads Japan, South Korea, Portugal and Germany
 
 ## App Store release
 
-Put off by Marc on 2026-11-10, and researched on 2026-11-08. Listing a free app costs nothing beyond
-the membership. What it needs:
+Put off by Marc on 2026-11-10 and asked for on 2026-11-12. The repo part is done: the privacy policy
+and support page, linked from Settings, the open-source introduction, the GPS requirement, and the
+listing in `APP_STORE.md`. Marc decided on 2026-11-12: the store name "Speedtrack: What's my speed",
+screenshots from his iPhone, non-trader, and a Submit for Review tap per store version. Open:
 
-- **Xcode Cloud:** Marc switches the archive in App Store Connect from "TestFlight (Internal Testing
-  Only)" to "TestFlight and App Store". Builds made before the switch cannot go to the App Store.
-- **Privacy pages:** a privacy policy link inside the app, and a public privacy policy and support
-  page. The support page must give the company's address, email and phone.
-- **Listing:** a store name that matches the Home Screen name, a description and keywords, and
-  screenshots from a real ride. Review notes explain that the speed needs GPS and movement.
-- **Marc's one-time steps in App Store Connect:**
-  - EU trader status under the Digital Services Act, which shows the company's address, phone and
-    email on the EU store.
-  - The latest developer agreement.
-  - App Privacy "Data Not Collected", which Apple's map does not change.
-  - Age rating 4+, category Navigation, and price Free.
-- **Open decision:** every App Store version needs a "Submit for Review" click in App Store
-  Connect. The alternative is an API key with the App Manager role.
+- **Xcode Cloud:** Marc switches the archive from "TestFlight (Internal Testing Only)" to
+  "TestFlight and App Store". Builds made before the switch can never go to the App Store.
+- **Version 1.0.0:** released to TestFlight as usual once the switch is made. It is the first store
+  version.
+- **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
+  and a tap on Submit for Review.
+- **App Privacy:** open with Marc: "Data Not Collected" or Other Diagnostic Data, with the facts in
+  `APP_STORE.md`. He chose on 2026-11-12 to build nothing on the map server.

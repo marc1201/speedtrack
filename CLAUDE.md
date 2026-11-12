@@ -102,6 +102,12 @@ Apple builds, signs and uploads on its side. Actions only compiles and must hold
   `Speedtrack internal`, which has automatic distribution on.
 - **The project stays data:** no `ci_scripts` file, script phase, build rule or package reference.
   They would run where Apple signs, and Xcode can run a script phase while it indexes.
+- **An App Store version:** Xcode Cloud uploads the build but cannot submit it. Marc taps Submit for
+  Review in App Store Connect, on the web or in its iPhone app, once per store version, by his
+  decision of 2026-11-12. That decision covers assistant-ios too. It is the one exception to "no click
+  per release": store versions are rare, and TestFlight stays automatic. Only a build archived for
+  "TestFlight and App Store" can be submitted. `APP_STORE.md` records the listing and Apple's
+  answers.
 
 ## How we develop here
 
@@ -114,7 +120,9 @@ A change to `ci/`, `ci_scripts/`, `SpeedTrack.xcodeproj`, signing, permissions, 
 - `MARKETING_VERSION` is in the Xcode project, in the project-level Debug and Release settings. Xcode
   Cloud sets the build number itself.
 - App Store Connect knows the app as `What's my speed`, SKU `number1`, Apple ID 6831002114, so its
-  mail uses that name. The Home Screen still says Speedtrack.
+  mail uses that name. For the store, Marc renames it `Speedtrack: What's my speed` (2026-11-12), so
+  that it matches the Home Screen name, Speedtrack. A mail search for `What's my speed` still finds
+  it.
 
 ## Status
 
