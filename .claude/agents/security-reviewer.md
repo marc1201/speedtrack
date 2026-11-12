@@ -49,7 +49,10 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    sprite URL in `LibreStyle` that is not a `file://` URL is HIGH. The "© OpenStreetMap" credit on
    the map and on the Licences page are links that hand the fixed address
    `https://www.openstreetmap.org/copyright` to Safari on a tap, as do the credits behind
-   MapLibre's (i) button; the app itself requests nothing there. MapLibre Native is the one
+   MapLibre's (i) button; the app itself requests nothing there. Settings' links to the code at
+   `https://github.com/marc1201/speedtrack` and to its `PRIVACY.md` and `SUPPORT.md` work the same
+   way. `PRIVACY.md` must stay true to what the app does with data: a claim the code contradicts is
+   HIGH. MapLibre Native is the one
    third-party dependency (invariant 3).
    `App/OverviewMap.dat` is data from Natural Earth, in the public domain, made by
    `tools/build-overview-map.py` from inputs pinned by SHA-256. The label font and MapLibre's

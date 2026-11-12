@@ -33,6 +33,10 @@ project.
   `App/Licences/`. Settings shows both licences and the map data's credit, and the OpenStreetMap
   map carries a visible "© OpenStreetMap", as the data's licence asks. Both credits link to
   OpenStreetMap's copyright page, which Safari opens on a tap.
+- Settings links the privacy policy `PRIVACY.md` and the support page `SUPPORT.md`, as App Review
+  requires. Safari opens them from GitHub, and `ci/build-test.sh` fails when Settings links a file
+  the repository lacks. A change to what the app does with data changes `PRIVACY.md` in the same
+  commit.
 - A country is a PMTiles file cut from Protomaps' daily OpenStreetMap build (ODbL, so the map credits
   OpenStreetMap) by `tools/extract-country-map.py`, by hand on the VPS, into `build/maps/`.
   `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app writes a download

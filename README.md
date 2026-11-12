@@ -7,6 +7,11 @@ data, which is in the public domain, or OpenStreetMap for countries downloaded o
 offline. The OpenStreetMap data is © OpenStreetMap contributors, prepared by
 [Protomaps](https://protomaps.com). The label font is Noto Sans, under the SIL Open Font License.
 
+## Privacy and support
+
+The app has no account, ads, analytics or tracking, and sends your location nowhere, as its
+[privacy policy](PRIVACY.md) explains. Questions and problems go to the [support page](SUPPORT.md).
+
 ## Build
 
 Open `SpeedTrack.xcodeproj` in Xcode 16 or later. Every push to main compiles the app, runs its

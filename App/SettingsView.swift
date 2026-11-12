@@ -28,15 +28,25 @@ struct SettingsView: View {
                 } header: {
                     Text("OpenStreetMap countries")
                 } footer: {
-                    Text("Each country downloads once from maps.1201.de, then works without internet. The map server sees which country is downloaded, not where you are. Map data © OpenStreetMap contributors, prepared by Protomaps.")
+                    Text("Each country downloads once from maps.1201.de, then works without internet. The map server sees your IP address and which country you download, never your position. Map data © OpenStreetMap contributors, prepared by Protomaps.")
                 }
                 Section {
+                    Link("Privacy policy", destination: ProjectPage.privacyPolicy)
+                    Link("Help and contact", destination: ProjectPage.support)
                     NavigationLink("Licences") { LicencesView() }
                 }
             }
             .navigationTitle("Settings")
         }
     }
+}
+
+/// The app's pages in its public repository. The browser opens them on a tap, and the app itself
+/// requests nothing there. `ci/build-test.sh` checks that each file named here exists.
+private enum ProjectPage {
+    static let repository = URL(string: "https://github.com/marc1201/speedtrack")!
+    static let privacyPolicy = repository.appending(path: "blob/main/PRIVACY.md")
+    static let support = repository.appending(path: "blob/main/SUPPORT.md")
 }
 
 private struct CountryRow: View {

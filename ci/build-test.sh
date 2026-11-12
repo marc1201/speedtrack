@@ -4,6 +4,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# Settings links files of this repository on main, such as the privacy policy, which App Review
+# requires. A renamed file would leave its link dead.
+pages="$(grep -ohE 'blob/main/[A-Za-z0-9._/-]+' App/*.swift | sed 's|^blob/main/||' | sort -u)"
+test -n "$pages"
+for page in $pages; do
+  test -f "$page" || { echo "Settings links $page, which is not in the repository" >&2; exit 1; }
+done
+
 xcodebuild -version
 
 # Xcode Cloud takes packages only as the committed Package.resolved pins them, and so does every
