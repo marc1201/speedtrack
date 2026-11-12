@@ -109,8 +109,8 @@ Apple builds, signs and uploads on its side. Actions only compiles and must hold
   Review in App Store Connect, on the web or in its iPhone app, once per store version, by his
   decision of 2026-11-12. That decision covers assistant-ios too. It is the one exception to "no click
   per release": store versions are rare, and TestFlight stays automatic. Only a build archived with
-  "App Store Connect" can be submitted, 1.0.0 being the first. `APP_STORE.md` records the listing
-  and Apple's answers.
+  "App Store Connect" can be submitted, as every build from 1.0.0 on is. 1.0.1 is the first store
+  version. `APP_STORE.md` records the listing and Apple's answers.
 
 ## How we develop here
 

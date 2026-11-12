@@ -105,5 +105,8 @@ attached."
 - **EU Digital Services Act:** non-trader, by Marc's decision. Apple publishes no contact details
   for the app. EU product pages say the provider has not declared itself a trader, so EU consumer
   rights do not apply.
+- **Version number:** a store version carries the `MARKETING_VERSION` of the build it ships, 1.0.1
+  for the first. App Store Connect names a new app's first version itself, usually 1.0, so Marc
+  changes the number to match before he picks the build.
 - **Submitting:** Marc taps Submit for Review for each store version, by his decision. See
   `CLAUDE.md`.

@@ -23,7 +23,9 @@ screenshots from his iPhone, non-trader, and a Submit for Review tap per store v
 
 - **Xcode Cloud:** done on 2026-11-12. Marc set the archive's Distribution Preparation to "App Store
   Connect". Builds made before that can never go to the App Store.
-- **Version 1.0.0:** released to TestFlight on 2026-11-12 (815eb03). It is the first store version.
+- **Version 1.0.1:** the first store version, because its Settings name train and plane travel as
+  the main use, by Marc's word of 2026-11-12. 1.0.0 reached TestFlight on 2026-11-12 (815eb03) with
+  the older text and is not submitted.
 - **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
   and a tap on Submit for Review.
 - **App Privacy:** open with Marc: "Data Not Collected" or Other Diagnostic Data, with the facts in
