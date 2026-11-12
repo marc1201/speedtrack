@@ -21,10 +21,9 @@ and support page, linked from Settings, the open-source introduction, the GPS re
 listing in `APP_STORE.md`. Marc decided on 2026-11-12: the store name "Speedtrack: What's my speed",
 screenshots from his iPhone, non-trader, and a Submit for Review tap per store version. Open:
 
-- **Xcode Cloud:** Marc switches the archive from "TestFlight (Internal Testing Only)" to
-  "TestFlight and App Store". Builds made before the switch can never go to the App Store.
-- **Version 1.0.0:** released to TestFlight as usual once the switch is made. It is the first store
-  version.
+- **Xcode Cloud:** done on 2026-11-12. Marc set the archive's Distribution Preparation to "App Store
+  Connect". Builds made before that can never go to the App Store.
+- **Version 1.0.0:** released to TestFlight on 2026-11-12 (815eb03). It is the first store version.
 - **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
   and a tap on Submit for Review.
 - **App Privacy:** open with Marc: "Data Not Collected" or Other Diagnostic Data, with the facts in

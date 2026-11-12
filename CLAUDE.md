@@ -97,17 +97,19 @@ Apple builds, signs and uploads on its side. Actions only compiles and must hold
 - **Apple's side:** the settings live in App Store Connect, out of the push token's reach, and this
   is their only record. Workflow `TestFlight`, Restrict Editing on. Latest Release, Clean on, no
   environment variables. Manual Start and Auto-cancel Builds at their defaults. Branch Changes on
-  exactly `main`, Files and Folders on the folder `release`. Archive with TestFlight (Internal
-  Testing Only), and no Build action. Post-action TestFlight Internal Testing to the group
+  exactly `main`, Files and Folders on the folder `release`. Archive with the Distribution
+  Preparation "App Store Connect", which Marc set on 2026-11-12 in place of "TestFlight (Internal
+  Testing Only)" so that builds can also go to the App Store. It is Apple's newer name for "TestFlight
+  and App Store". No Build action. Post-action TestFlight Internal Testing to the group
   `Speedtrack internal`, which has automatic distribution on.
 - **The project stays data:** no `ci_scripts` file, script phase, build rule or package reference.
   They would run where Apple signs, and Xcode can run a script phase while it indexes.
 - **An App Store version:** Xcode Cloud uploads the build but cannot submit it. Marc taps Submit for
   Review in App Store Connect, on the web or in its iPhone app, once per store version, by his
   decision of 2026-11-12. That decision covers assistant-ios too. It is the one exception to "no click
-  per release": store versions are rare, and TestFlight stays automatic. Only a build archived for
-  "TestFlight and App Store" can be submitted. `APP_STORE.md` records the listing and Apple's
-  answers.
+  per release": store versions are rare, and TestFlight stays automatic. Only a build archived with
+  "App Store Connect" can be submitted, 1.0.0 being the first. `APP_STORE.md` records the listing
+  and Apple's answers.
 
 ## How we develop here
 
