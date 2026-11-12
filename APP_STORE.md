@@ -8,9 +8,7 @@ and plane travel, which Marc named as the app's main use on 2026-11-12.
 ## Listing, English (U.S.)
 
 - **Name:** Speedtrack: What's my speed. This is Marc's choice. It starts with the Home Screen name,
-  "Speedtrack", because guideline 2.3.8 rejects names that don't match. It keeps a phrase that
-  another developer's "Speedometer: What's My Speed" also uses, which guideline 4.1(c) can object
-  to.
+  "Speedtrack", because guideline 2.3.8 rejects names that don't match.
 - **Subtitle:** Train and plane speedometer
 - **Promotional text:** See how fast your train or plane is going, in km/h, mph, m/s or pace, with a
   map that keeps working without internet. Open source: no account, no ads, no tracking.
@@ -54,9 +52,8 @@ an iPhone 14 Pro to 17 Pro. A Pro Max shot is 1320 x 2868, which fits the large 
 fits the required one too. If App Store Connect also asks for the large class, upload the same shots
 resized to 1320 x 2868. Show nothing that suggests use while driving, so no road under a high
 speed. A train ride as a passenger, the main use, shows it best, with the railway on the map; a walk
-works too. The map shows where the phone is, so take them away from home. That ride or walk is also
-the speed's first outdoor test on record, and a 30 to 60 second screen recording of it, from "--"
-to a live speed, can go to App Review as an attachment.
+works too. The map shows where the phone is, so take them away from home. A 30 to 60 second screen
+recording of the ride or walk, from "--" to a live speed, can go to App Review as an attachment.
 
 ## App Review information
 
