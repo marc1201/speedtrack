@@ -38,6 +38,9 @@ project.
   requires. Safari opens them from GitHub, and `ci/build-test.sh` fails when Settings links a file
   the repository lacks. A change to what the app does with data changes `PRIVACY.md` in the same
   commit.
+- `App/Info.plist` requires GPS and location services, so the App Store offers the app only to
+  devices that can measure a speed. Only the first store release could add that requirement; a later
+  one may only drop it.
 - A country is a PMTiles file cut from Protomaps' daily OpenStreetMap build (ODbL, so the map credits
   OpenStreetMap) by `tools/extract-country-map.py`, by hand on the VPS, into `build/maps/`.
   `App/CountryMaps.json` lists each file's dated name, bytes and SHA-256. The app writes a download
