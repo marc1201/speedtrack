@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The second tab: which map the app draws, and the countries downloaded for OpenStreetMap.
+/// The second tab: what the app is, which map it draws, and the countries downloaded for
+/// OpenStreetMap.
 struct SettingsView: View {
     @AppStorage("map") private var map: MapChoice = .apple
     @EnvironmentObject private var countryMaps: CountryMapStore
@@ -8,6 +9,10 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Text("Speedtrack is an open source project. Its code is public on GitHub under the MIT License, so anyone can read how it works, report a problem or suggest a change.")
+                    Link("Speedtrack on GitHub", destination: ProjectPage.repository)
+                }
                 Section {
                     Picker("Map", selection: $map) {
                         ForEach(MapChoice.allCases) { choice in

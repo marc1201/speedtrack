@@ -33,7 +33,8 @@ project.
   `App/Licences/`. Settings shows both licences and the map data's credit, and the OpenStreetMap
   map carries a visible "© OpenStreetMap", as the data's licence asks. Both credits link to
   OpenStreetMap's copyright page, which Safari opens on a tap.
-- Settings links the privacy policy `PRIVACY.md` and the support page `SUPPORT.md`, as App Review
+- Settings opens by introducing the app as an open source project, with a link to its code on
+  GitHub, and links the privacy policy `PRIVACY.md` and the support page `SUPPORT.md`, as App Review
   requires. Safari opens them from GitHub, and `ci/build-test.sh` fails when Settings links a file
   the repository lacks. A change to what the app does with data changes `PRIVACY.md` in the same
   commit.
