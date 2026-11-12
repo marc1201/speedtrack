@@ -1,8 +1,9 @@
 # CLAUDE.md
 
-Speedtrack is a native iOS app that shows how fast the device is moving. It exists to test two
-things: the Apple Developer account of Eins-zwei-null-eins Portugal Unipessoal, Lda, and how cheaply
-a new project starts on the VPS. Keep it small.
+Speedtrack is a native iOS app that shows how fast the device is moving, made mostly for train and
+plane travel, which Marc named as its main use on 2026-11-12. It exists to test two things: the
+Apple Developer account of Eins-zwei-null-eins Portugal Unipessoal, Lda, and how cheaply a new
+project starts on the VPS. Keep it small.
 
 The shared rules in `~/.claude/CLAUDE.md` apply here. This file adds what is specific to this
 project.

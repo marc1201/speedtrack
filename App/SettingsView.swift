@@ -13,7 +13,7 @@ struct SettingsView: View {
                     Text("Speedtrack is an open source project. Its code is public on GitHub under the MIT License, so anyone can read how it works, report a problem or suggest a change.")
                     Link("Speedtrack on GitHub", destination: ProjectPage.repository)
                 } footer: {
-                    Text("Made for passengers, walking, running and cycling. Do not use it while driving.")
+                    Text("Made for train and plane travel, and also for walking, running and cycling. Do not use it while driving.")
                 }
                 Section {
                     Picker("Map", selection: $map) {

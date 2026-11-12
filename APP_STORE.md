@@ -2,7 +2,8 @@
 
 The listing and the App Store Connect answers for Speedtrack (Apple ID 6831002114). They live in
 App Store Connect, out of the push token's reach, so this file is their record: change it whenever
-the console changes. Marc's decisions of 2026-11-12 are marked as his.
+the console changes. Marc's decisions of 2026-11-12 are marked as his. The listing leads with train
+and plane travel, which Marc named as the app's main use on 2026-11-12.
 
 ## Listing, English (U.S.)
 
@@ -10,10 +11,12 @@ the console changes. Marc's decisions of 2026-11-12 are marked as his.
   "Speedtrack", because guideline 2.3.8 rejects names that don't match. It keeps a phrase that
   another developer's "Speedometer: What's My Speed" also uses, which guideline 4.1(c) can object
   to.
-- **Subtitle:** Speedometer that works offline
-- **Promotional text:** See how fast you are moving in km/h, mph, m/s or pace, with a map that keeps
-  working without internet. Open source, with no account, no ads and no tracking.
-- **Keywords:** gps,km/h,mph,pace,velocity,bus,map,train,ferry,plane,bike,cycling,running,walking,hiking
+- **Subtitle:** Train and plane speedometer
+- **Promotional text:** See how fast your train or plane is going, in km/h, mph, m/s or pace, with a
+  map that keeps working without internet. Open source: no account, no ads, no tracking.
+- **Keywords:** gps,km/h,mph,offline,flight,airplane,railway,ferry,bus,pace,map,bike,cycling,running,walking,hiking
+  (99 of 100 bytes). The name and subtitle already give "speed", "train", "plane" and
+  "speedometer", and the store searches all three fields, so the keywords don't repeat them.
 - **Support URL:** https://github.com/marc1201/speedtrack/blob/main/SUPPORT.md
 - **Marketing URL:** https://github.com/marc1201/speedtrack
 - **Privacy policy URL:** https://github.com/marc1201/speedtrack/blob/main/PRIVACY.md
@@ -23,7 +26,7 @@ the console changes. Marc's decisions of 2026-11-12 are marked as his.
 **Description:**
 
 ```
-Speedtrack shows how fast you are moving, in big numbers, with a map of where you are. Its maps keep working without internet.
+Speedtrack shows how fast your train or plane is going, in big numbers, with a map of where you are. Its maps keep working without internet.
 
 • Speed from GPS in km/h, mph, m/s, min/km or min/mi
 • Your top speed of the day
@@ -33,7 +36,7 @@ Speedtrack shows how fast you are moving, in big numbers, with a map of where yo
 • The number turns grey when the speed is not current, and the line below it says why
 • The screen stays on while the app is open
 
-Made for passengers on trains, buses, ferries and planes, and for walking, running and cycling. Do not use it while driving.
+Made for train and plane travel, and also for walking, running and cycling. Do not use it while driving.
 
 No account, no ads, no analytics and no tracking. The app sends your position nowhere. Apple's map, which the app starts with, loads the area on screen from Apple; the outlines and OpenStreetMap need no connection.
 
@@ -49,10 +52,11 @@ PNG or JPEG without transparency, showing the app in use. App Store Connect requ
 "iPhone with Dynamic Island (medium display)": 1206 x 2622 or 1179 x 2556 in portrait, the size of
 an iPhone 14 Pro to 17 Pro. A Pro Max shot is 1320 x 2868, which fits the large class, and resized it
 fits the required one too. If App Store Connect also asks for the large class, upload the same shots
-resized to 1320 x 2868. Show no high speeds and nothing that suggests use while driving: walking,
-cycling, or a train ride as a passenger. The map shows where the phone is, so take them away from
-home. The walk is also the speed's first outdoor test on record, and a 30 to 60 second screen
-recording of it, from "--" to a live speed, can go to App Review as an attachment.
+resized to 1320 x 2868. Show nothing that suggests use while driving, so no road under a high
+speed. A train ride as a passenger, the main use, shows it best, with the railway on the map; a walk
+works too. The map shows where the phone is, so take them away from home. That ride or walk is also
+the speed's first outdoor test on record, and a 30 to 60 second screen recording of it, from "--"
+to a live speed, can go to App Review as an attachment.
 
 ## App Review information
 
@@ -61,7 +65,7 @@ recording of it, from "--" to a live speed, can go to App Review as an attachmen
 - **Notes:**
 
 ```
-Speedtrack is a free GPS speedometer for passengers, walkers, runners and cyclists. Unlike most speedometers it also works without internet: GPS gives the speed, world outlines are built into the app, and OpenStreetMap countries are downloaded once and checked by SHA-256. Only Apple Maps, the default map, needs a connection. A motion check holds a phone lying still at 0 instead of GPS drift. There is no sign-in, nothing to buy and no advertising. It is open source under the MIT License. Tested through TestFlight on iPhone.
+Speedtrack is a free GPS speedometer, made mostly for passengers on trains and planes, and also for walking, running and cycling. Unlike most speedometers it also works without internet: GPS gives the speed, world outlines are built into the app, and OpenStreetMap countries are downloaded once and checked by SHA-256. Only Apple Maps, the default map, needs a connection. A motion check holds a phone lying still at 0 instead of GPS drift. There is no sign-in, nothing to buy and no advertising. It is open source under the MIT License. Tested through TestFlight on iPhone.
 
 The speed is the one Core Location reports, so it needs precise location and movement. Indoors or standing still the number reads "--" or 0, and the line below it says why, for example "Looking for your location" or "Location found, no speed yet". Outdoors and moving, a speed shows within seconds. Location is used only while the app is on screen. If location is denied, everything except the speed keeps working.
 
