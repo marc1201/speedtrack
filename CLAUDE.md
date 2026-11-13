@@ -132,4 +132,5 @@ A change to `ci/`, `ci_scripts/`, `SpeedTrack.xcodeproj`, signing, permissions, 
 Version 0.1.0 reached Marc's iPhone through TestFlight on 2026-11-06 with no click, about 8 minutes
 from the release commit to the invite, and ordinary pushes start no build. While a build is still
 processing, its Groups list reads 0 and the commit status stays pending, so never add it by hand.
-The app has only run indoors so far, so the speed itself is untested on a phone.
+The speed has been measured on a flight in airplane mode, up to 794 km/h, with the offline maps
+drawing.
