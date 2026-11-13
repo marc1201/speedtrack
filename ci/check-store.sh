@@ -72,13 +72,14 @@ a missing key|del(.notes)
 a number|.name = 1
 a nested object|.notes = {a: "b"}
 a line feed in the name|.name = "a\nb"
-a line separator|.subtitle = "a b"
-a zero-width space|.description += "​"
+a line separator|.subtitle = "a\u2028b"
+a zero-width space|.description += "\u200b"
 a line feed after the version|.version = "1.0.1\n"
 a two-part version|.version = "1.0"
 an unknown mode|.mode = "yes"
 another domain|.notes += " See evil.com."
 a lookalike repository|.description += " github.com/marc12O1/speedtrack"
+a domain after the repository's name|.description += " github.com/marc1201/speedtrack.com"
 a URL scheme|.description += " https://example"
 a www address|.promotionalText = "www.speedtrack"
 another copyright holder|.copyright = "2026 Someone Else"

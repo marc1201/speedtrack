@@ -42,42 +42,19 @@ jobs:
           cd /
           log() { printf 'store: %s\n' "$*"; }
           [[ $GITHUB_SHA =~ ^[0-9a-f]{40}$ ]] || { log "unexpected commit id"; exit 1; }
-          d="$RUNNER_TEMP/store"
-          rm -rf "$d"
-          mkdir -m 700 "$d" "$d/in"
-          f="$d/in/listing.json"
-          got=$(curl -q -sS --proto '=https' --max-time 30 --max-filesize 65536 -o "$f" \
-            -w '%{http_code} %{size_download}' \
-            "https://raw.githubusercontent.com/marc1201/speedtrack/$GITHUB_SHA/store/listing.json") \
-            || got="000 0"
-          if ! [[ $got =~ ^200\ ([0-9]{1,5})$ ]] || (( BASH_REMATCH[1] > 65536 )); then
-            log "fetching store/listing.json: $got"; exit 1
-          fi
-          shopt -s nullglob dotglob
-          files=("$d/in"/*)
-          [[ ${#files[@]} -eq 1 && ${files[0]} == "$f" && -f $f && ! -L $f ]] \
-            || { log "the download left unexpected files"; exit 1; }
-          for p in "${GITHUB_ENV:-}" "${GITHUB_PATH:-}" "${GITHUB_OUTPUT:-}" "${GITHUB_STATE:-}" \
-            "${GITHUB_STEP_SUMMARY:-}" "$RUNNER_TEMP" "$d"; do
-            [[ -n $p ]] || continue
-            for q in "$p" "${p%/*}"; do
-              if sudo -u nobody -- test -w "$q"; then log "nobody can write $q"; exit 1; fi
-            done
-          done
           dup=$(cat <<'DUP'
           [inputs | select(length == 2) | .[0]]
           | all(length == 1) and (map(.[0]) | length == (unique | length))
           DUP
           )
-          sudo -u nobody -- jq -en --stream "$dup" < "$f" > /dev/null \
-            || { log "store/listing.json is not one flat object with unique keys"; exit 1; }
           prog=$(cat <<'LISTING'
           def fits(re): test("\\A(?:" + re + ")\\z");
-          def chars: "[ -~•©’“”–—]";
+          def chars: "[ -~\u2022\u00a9\u2019\u201c\u201d\u2013\u2014]";
           def line(n): type == "string" and length <= n and fits(chars + "*");
           def para(n): type == "string" and length <= n and fits("(?:" + chars + "|\n)*");
           def nolinks:
-            gsub("github[.]com/marc1201/speedtrack"; "") | gsub("maps[.]1201[.]de"; "")
+            gsub("github[.]com/marc1201/speedtrack(?![A-Za-z0-9_-]|[.][A-Za-z0-9])"; "")
+            | gsub("maps[.]1201[.]de(?![A-Za-z0-9_-]|[.][A-Za-z0-9])"; "")
             | test("[a-z0-9-][.][a-z]{2}|://|www[.]"; "i") | not;
           if type == "object"
             and keys == ["copyright", "description", "keywords", "mode", "name", "notes",
@@ -111,12 +88,38 @@ jobs:
           else error("store/listing.json fails a check") end
           LISTING
           )
+          d="$RUNNER_TEMP/store"
+          rm -rf "$d"
+          mkdir -m 700 "$d" "$d/in"
+          f="$d/in/listing.json"
+          got=$(curl -q -sS --proto '=https' --max-time 30 --max-filesize 65536 -o "$f" \
+            -w '%{http_code} %{size_download}' \
+            "https://raw.githubusercontent.com/marc1201/speedtrack/$GITHUB_SHA/store/listing.json") \
+            || got="000 0"
+          if ! [[ $got =~ ^200\ ([0-9]{1,5})$ ]] || (( BASH_REMATCH[1] > 65536 )); then
+            log "fetching store/listing.json: $got"; exit 1
+          fi
+          shopt -s nullglob dotglob
+          files=("$d/in"/*)
+          [[ ${#files[@]} -eq 1 && ${files[0]} == "$f" && -f $f && ! -L $f ]] \
+            || { log "the download left unexpected files"; exit 1; }
+          for p in "${GITHUB_ENV:-}" "${GITHUB_PATH:-}" "${GITHUB_OUTPUT:-}" "${GITHUB_STATE:-}" \
+            "${GITHUB_STEP_SUMMARY:-}" "$RUNNER_TEMP" "$d"; do
+            [[ -n $p ]] || continue
+            for q in "$p" "${p%/*}"; do
+              if sudo -u nobody -- test -w "$q"; then log "nobody can write $q"; exit 1; fi
+            done
+          done
+          sudo -u nobody -- jq -en --stream "$dup" < "$f" > /dev/null \
+            || { log "store/listing.json is not one flat object with unique keys"; exit 1; }
           sudo -u nobody -- jq -er --arg part meta "$prog" < "$f" > "$d/meta" \
             || { log "store/listing.json fails a check"; exit 1; }
           for part in version vloc iloc review; do
             sudo -u nobody -- jq -ec --arg part "$part" "$prog" < "$f" > "$d/$part"
           done
           sudo pkill -KILL -u nobody || true
+          for i in 1 2 3 4; do pgrep -u nobody > /dev/null || break; sleep 0.5; done
+          if pgrep -u nobody > /dev/null; then log "a process of nobody outlived the checks"; exit 1; fi
           log "store/listing.json passes its checks: $(tr -cd 'a-z0-9. ' < "$d/meta")"
 
       - name: Apply
@@ -172,7 +175,9 @@ jobs:
           jqn() { local f=$1; shift; sudo -u nobody -- jq "$@" < "$f"; }
           call() {
             local m=$1 p=$2; shift 2
-            code=$(curl -q -sS -g --proto '=https' --max-time 20 -o "$w/r" -w '%{http_code}' \
+            rm -f "$w/r"
+            code=$(curl -q -sS -g --proto '=https' --max-time 20 --max-filesize 1000000 -o "$w/r" \
+              -w '%{http_code}' \
               -H @"$w/auth" -X "$m" "$@" "https://api.appstoreconnect.apple.com$p") || code=000
             log "$m $p: $code"
           }
@@ -211,7 +216,8 @@ jobs:
           fi
           call GET "/v1/appStoreVersions/$vid/relationships/build"
           want 200
-          build=$(jqn "$w/r" -r 'if .data == null then "none" elif (.data | type) == "object" then "attached" else "unknown" end')
+          build=$(jqn "$w/r" -r 'if has("data") | not then "unknown" elif .data == null then "none"
+            elif (.data | type) == "object" then "attached" else "unknown" end')
           if [[ $build == attached ]]; then log "a build is attached to $ver, so its listing is frozen"; exit 0; fi
           [[ $build == none ]] || { log "cannot tell whether a build is attached to $ver"; exit 1; }
           call GET "/v1/appStoreVersions/$vid/appStoreVersionLocalizations?filter%5Blocale%5D=en-US&fields%5BappStoreVersionLocalizations%5D=locale"
@@ -221,7 +227,8 @@ jobs:
           call GET "/v1/appStoreVersions/$vid/appStoreReviewDetail?fields%5BappStoreReviewDetails%5D=notes"
           rid=""
           if [[ $code == 200 ]]; then
-            rid=$(jqn "$w/r" -r 'if .data == null then "" else (.data.id | strings) end')
+            rid=$(jqn "$w/r" -er 'if has("data") and .data == null then ""
+              elif (.data.id | type) == "string" then .data.id else error("no id") end')
             [[ -z $rid ]] || isid "$rid"
           elif [[ $code != 404 ]]; then
             want 200
