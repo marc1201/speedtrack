@@ -117,10 +117,12 @@ job below, and `ci/release-status.py` must use no credential.
   dedicated user with the Marketing role, limited to Speedtrack, as the secret `ASC_KEY_P8` and the
   variable `ASC_KEY_ID` of the environment `app-store`, which only main may use. The job runs on a
   push to main that changes `store/listing.json` or its own workflow file. Its `mode` says off
-  (nothing goes to Apple), check (it only reads) or write. It writes only to the store version being
-  prepared whose number is the listing's `version`, and turns red when there is none, so Marc
-  creates each store version before its listing is pushed. It writes nothing once a build is
-  attached, so the text Marc reads before Submit stays. From the listing it sets the name, subtitle,
+  (nothing goes to Apple), check (it only reads) or write. Of the store versions it writes only to
+  the one being prepared whose number is the listing's `version`, and turns red when there is none,
+  so Marc creates each store version before its listing is pushed. The name, subtitle, privacy
+  policy URL, categories and age rating live in the app's info record, which it writes only while
+  exactly one is editable. It writes nothing once a build is attached, so the text Marc reads
+  before Submit stays. From the listing it sets the name, subtitle,
   promotional text, description, keywords, What's New, review notes and copyright. From values fixed
   in the workflow it sets the three URLs, the two categories and the age-rating answers, except the
   two questions Apple asks from 2026-11-16, shared location and dating and relationships, which stay
