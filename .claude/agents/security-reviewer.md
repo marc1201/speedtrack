@@ -30,7 +30,10 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    any output derived from the key or the token, in any encoding; jq run on the listing or on
    Apple's answers as any user but `nobody`; a write outside the editable states or while a build is
    attached; an endpoint outside the ones the file lists; a submit, a build choice, or creating or
-   renaming a version; and a wider role, a team key or another key unless Marc names it. Any other
+   renaming a version; a write to anything but the listing's texts, its three URLs, its two
+   categories and its 24 age-rating keys, such as an attribute added to a body the file already
+   sends or an age-rating key added or renamed, because the two questions Apple asks from 2026-11-16
+   stay Marc's; and a wider role, a team key or another key unless Marc names it. Any other
    `secrets.` reference in any workflow is HIGH. Any credential, token or auth header in
    `ci/release-status.py` is HIGH. Check
    every job that holds a secret against each point of "A job that holds a credential" in

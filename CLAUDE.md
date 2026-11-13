@@ -116,21 +116,23 @@ job below, and `ci/release-status.py` must use no credential.
   Marc's decision of 2026-11-13. It holds one App Store Connect key: an individual key of a
   dedicated user with the Marketing role, limited to Speedtrack, as the secret `ASC_KEY_P8` and the
   variable `ASC_KEY_ID` of the environment `app-store`, which only main may use. The job runs on a
-  push that changes `store/listing.json`. Its `mode` says off (nothing goes to Apple), check (it
-  only reads) or write. It writes only to the store version being prepared whose number is the
-  listing's `version`, and turns red when there is none, so Marc creates each store version before
-  its listing is pushed. It writes nothing once a build is attached, so the text Marc reads before
-  Submit stays. It sets the name, subtitle, promotional text, description, keywords, What's New,
-  review notes and copyright, the three URLs, the categories and the age rating, and never creates a
-  version, chooses a build or submits. `ci/check-store.sh` runs its checks on every push. The
-  workflow file is `.github/workflows/store.yml`, which the push token cannot write. Its reviewed
-  text waits in `store/store.yml` until Marc commits it. Every change to it goes through the
-  1201-assistant session: it reviews the text, prints it for Marc, and checks the committed hash
-  against the one it reviewed. Marc never pastes workflow text from this session. Stays in the
-  console: screenshots, App Privacy, price and availability, the App Review contact, the release
-  option and the age-rating questions Apple has no attribute for. If App Store Connect or the job's
-  log shows a change nobody made, stop and ask Marc to revoke the key under Users and Access →
-  Integrations → Individual Keys.
+  push to main that changes `store/listing.json` or its own workflow file. Its `mode` says off
+  (nothing goes to Apple), check (it only reads) or write. It writes only to the store version being
+  prepared whose number is the listing's `version`, and turns red when there is none, so Marc
+  creates each store version before its listing is pushed. It writes nothing once a build is
+  attached, so the text Marc reads before Submit stays. From the listing it sets the name, subtitle,
+  promotional text, description, keywords, What's New, review notes and copyright. From values fixed
+  in the workflow it sets the three URLs, the two categories and the age-rating answers, except the
+  two questions Apple asks from 2026-11-16, shared location and dating and relationships, which stay
+  Marc's. It sets nothing else, and never creates a version, chooses a build or submits.
+  `ci/check-store.sh` runs its checks on every push. The workflow file is
+  `.github/workflows/store.yml`, which the push token cannot write. Its reviewed text waits in
+  `store/store.yml` until Marc commits it. Every change to it goes through the 1201-assistant
+  session: it reviews the text, prints it for Marc, and checks the committed hash against the one it
+  reviewed. Marc never pastes workflow text from this session. Stays in the console: screenshots,
+  App Privacy, price and availability, the App Review contact, the release option and those two
+  age-rating questions. If App Store Connect or the job's log shows a change nobody made, stop and
+  ask Marc to revoke the key under Users and Access → Integrations → Individual Keys.
 
 ## How we develop here
 
