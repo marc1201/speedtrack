@@ -27,10 +27,11 @@ screenshots from his iPhone, non-trader, and a Submit for Review tap per store v
   the main use, by Marc's word of 2026-11-12. 1.0.0 reached TestFlight on 2026-11-12 (815eb03) with
   the older text and is not submitted.
 - **Listing key:** Marc said go on 2026-11-13, "along the rules aligned with the assistant".
-  `store/listing.json` holds the listing, and the store job's reviewed text waits in
-  `store/store.yml`. Next: the 1201-assistant session reviews it, Marc commits it as
-  `.github/workflows/store.yml` and then creates the key, and the listing goes from mode off to
-  check to write. Then `store/store.yml` goes, and `ci/check-store.sh` reads the workflow file.
+  `store/listing.json` holds the listing, and the store job's text waits in `store/store.yml`,
+  which the 1201-assistant session passed on 2026-11-13. Next: Marc commits it as
+  `.github/workflows/store.yml`, the 1201-assistant session checks that the committed file matches
+  the reviewed one, Marc creates the key, and the listing goes from mode off to check to write.
+  Then `store/store.yml` goes, and `ci/check-store.sh` reads the workflow file.
 - **Screenshots:** Marc took them on a flight. He uploads them himself, because the Marketing role
   cannot.
 - **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
