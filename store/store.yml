@@ -1,0 +1,291 @@
+# The store job sets the App Store listing of the version being prepared from store/listing.json,
+# with one App Store Connect key: the Marketing role, of a user limited to Speedtrack, as the secret
+# of the environment app-store, which only main may use. Marc's decision of 2026-11-13.
+#
+# It holds the repository's only secret, so it follows "A job that holds a credential" in the shared
+# rules: steps inline, no checkout, no action, no repository code, and the secret in one step.
+# store/listing.json is data. It is read as text at the pushed commit, checked by jq running as the
+# user nobody, and reaches Apple only as JSON strings inside bodies whose types, ids and paths are
+# fixed here. Its "mode" decides: off sends nothing, check only reads, write writes. The job never
+# submits, never chooses a build, and writes nothing once a build is attached.
+#
+# The push token cannot change this file. A change to it is reviewed by the 1201-assistant session,
+# which prints the text Marc commits and then checks the committed hash.
+name: store
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - store/listing.json
+      - .github/workflows/store.yml
+
+permissions: {}
+
+concurrency:
+  group: store
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    environment: app-store
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Check
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          cd /
+          log() { printf 'store: %s\n' "$*"; }
+          [[ $GITHUB_SHA =~ ^[0-9a-f]{40}$ ]] || { log "unexpected commit id"; exit 1; }
+          d="$RUNNER_TEMP/store"
+          rm -rf "$d"
+          mkdir -m 700 "$d" "$d/in"
+          f="$d/in/listing.json"
+          got=$(curl -q -sS --proto '=https' --max-time 30 --max-filesize 65536 -o "$f" \
+            -w '%{http_code} %{size_download}' \
+            "https://raw.githubusercontent.com/marc1201/speedtrack/$GITHUB_SHA/store/listing.json") \
+            || got="000 0"
+          if ! [[ $got =~ ^200\ ([0-9]{1,5})$ ]] || (( BASH_REMATCH[1] > 65536 )); then
+            log "fetching store/listing.json: $got"; exit 1
+          fi
+          shopt -s nullglob dotglob
+          files=("$d/in"/*)
+          [[ ${#files[@]} -eq 1 && ${files[0]} == "$f" && -f $f && ! -L $f ]] \
+            || { log "the download left unexpected files"; exit 1; }
+          for p in "${GITHUB_ENV:-}" "${GITHUB_PATH:-}" "${GITHUB_OUTPUT:-}" "${GITHUB_STATE:-}" \
+            "${GITHUB_STEP_SUMMARY:-}" "$RUNNER_TEMP" "$d"; do
+            [[ -n $p ]] || continue
+            for q in "$p" "${p%/*}"; do
+              if sudo -u nobody -- test -w "$q"; then log "nobody can write $q"; exit 1; fi
+            done
+          done
+          dup=$(cat <<'DUP'
+          [inputs | select(length == 2) | .[0]]
+          | all(length == 1) and (map(.[0]) | length == (unique | length))
+          DUP
+          )
+          sudo -u nobody -- jq -en --stream "$dup" < "$f" > /dev/null \
+            || { log "store/listing.json is not one flat object with unique keys"; exit 1; }
+          prog=$(cat <<'LISTING'
+          def fits(re): test("\\A(?:" + re + ")\\z");
+          def chars: "[ -~•©’“”–—]";
+          def line(n): type == "string" and length <= n and fits(chars + "*");
+          def para(n): type == "string" and length <= n and fits("(?:" + chars + "|\n)*");
+          def nolinks:
+            gsub("github[.]com/marc1201/speedtrack"; "") | gsub("maps[.]1201[.]de"; "")
+            | test("[a-z0-9-][.][a-z]{2}|://|www[.]"; "i") | not;
+          if type == "object"
+            and keys == ["copyright", "description", "keywords", "mode", "name", "notes",
+                         "promotionalText", "subtitle", "version", "whatsNew"]
+            and (.mode | type == "string" and fits("off|check|write"))
+            and (.version | type == "string" and fits("[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}"))
+            and (.name | line(30) and length > 0)
+            and (.subtitle | line(30))
+            and (.promotionalText | line(170))
+            and (.description | para(4000) and length > 0)
+            and (.whatsNew | para(4000))
+            and (.notes | para(4000))
+            and (.keywords | type == "string" and utf8bytelength <= 100
+                 and fits("[a-z0-9/-]+(?:,[a-z0-9/-]+)*"))
+            and (.copyright | type == "string"
+                 and fits("20[0-9]{2} Eins-zwei-null-eins Portugal Unipessoal, Lda"))
+            and ([.name, .subtitle, .promotionalText, .description, .whatsNew, .notes] | all(nolinks))
+          then
+            {
+              meta: "\(.mode) \(.version)",
+              version: {copyright},
+              vloc: ({description, keywords, promotionalText,
+                      supportUrl: "https://github.com/marc1201/speedtrack/blob/main/SUPPORT.md",
+                      marketingUrl: "https://github.com/marc1201/speedtrack"}
+                     + (if .whatsNew == "" then {} else {whatsNew} end)),
+              iloc: {name, subtitle,
+                     privacyPolicyUrl: "https://github.com/marc1201/speedtrack/blob/main/PRIVACY.md"},
+              review: {notes}
+            }
+            | .[$part]
+          else error("store/listing.json fails a check") end
+          LISTING
+          )
+          sudo -u nobody -- jq -er --arg part meta "$prog" < "$f" > "$d/meta" \
+            || { log "store/listing.json fails a check"; exit 1; }
+          for part in version vloc iloc review; do
+            sudo -u nobody -- jq -ec --arg part "$part" "$prog" < "$f" > "$d/$part"
+          done
+          sudo pkill -KILL -u nobody || true
+          log "store/listing.json passes its checks: $(tr -cd 'a-z0-9. ' < "$d/meta")"
+
+      - name: Apply
+        shell: bash
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          ASC_KEY_ID: ${{ vars.ASC_KEY_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          cd /
+          log() { printf 'store: %s\n' "$*"; }
+          d="$RUNNER_TEMP/store"
+          read -r mode ver < "$d/meta"
+          [[ $mode =~ ^(off|check|write)$ && $ver =~ ^[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}$ ]] \
+            || { unset ASC_KEY_P8; log "unexpected mode or version"; exit 1; }
+          if [[ $mode == off ]]; then unset ASC_KEY_P8; log "mode off: nothing is sent to Apple"; exit 0; fi
+          w=$(mktemp -d "$RUNNER_TEMP/asc.XXXXXXXX")
+          trap 'rm -rf "$w"' EXIT
+          printf '%s\n' "${ASC_KEY_P8:-}" > "$w/key"
+          unset ASC_KEY_P8
+          [[ ${ASC_KEY_ID:-} =~ ^[A-Z0-9]{10}$ ]] || { log "the variable ASC_KEY_ID is missing or malformed"; exit 1; }
+          grep -q -- '-----BEGIN PRIVATE KEY-----' "$w/key" \
+            || { log "the secret ASC_KEY_P8 is missing or not a key"; exit 1; }
+
+          # An ES256 token for an individual key, valid for 3 minutes. openssl signs only the two
+          # parts built here from literals, the Key ID and the clock.
+          b64url() { openssl base64 -A | tr '+/' '-_' | tr -d '='; }
+          now=$(date +%s)
+          th=$(printf '{"alg":"ES256","kid":"%s","typ":"JWT"}' "$ASC_KEY_ID" | b64url)
+          tp=$(printf '{"sub":"user","iat":%d,"exp":%d,"aud":"appstoreconnect-v1"}' "$now" "$((now + 180))" | b64url)
+          hex=""
+          n=0
+          for int in $(printf '%s.%s' "$th" "$tp" | openssl dgst -sha256 -sign "$w/key" -binary \
+              | openssl asn1parse -inform DER | sed -n 's/.*prim: *INTEGER *:\([0-9A-F]*\)$/\1/p'); do
+            while (( ${#int} > 64 )) && [[ $int == 00* ]]; do int=${int:2}; done
+            while (( ${#int} < 64 )); do int="0$int"; done
+            hex+=$int
+            n=$((n + 1))
+          done
+          rm -f "$w/key"
+          [[ $n -eq 2 && $hex =~ ^[0-9A-F]{128}$ ]] || { log "signing failed"; exit 1; }
+          ts=$(printf "$(printf '%s' "$hex" | sed 's/../\\x&/g')" | b64url)
+          printf 'Authorization: Bearer %s.%s.%s\n' "$th" "$tp" "$ts" > "$w/auth"
+          unset th tp ts hex
+
+          # The token exists only in that file, which curl reads with -H @file; nothing prints it.
+          # Apple's answers are parsed by jq as nobody, and only ids and states are taken from them.
+          # A request body is spliced from a fixed frame, a checked id and the attributes that the
+          # Check step built. Nothing from a response is printed except Apple's error codes, cleaned.
+          # Every test of an answer goes on only on an explicit match, so an unreadable one stops it.
+          app=6831002114
+          jqn() { local f=$1; shift; sudo -u nobody -- jq "$@" < "$f"; }
+          call() {
+            local m=$1 p=$2; shift 2
+            code=$(curl -q -sS -g --proto '=https' --max-time 20 -o "$w/r" -w '%{http_code}' \
+              -H @"$w/auth" -X "$m" "$@" "https://api.appstoreconnect.apple.com$p") || code=000
+            log "$m $p: $code"
+          }
+          want() {
+            [[ $code == "$1" ]] && return 0
+            jqn "$w/r" -r '.errors[]? | "\(.code // "") \(.source.pointer // "")"' 2>/dev/null \
+              | tr -cd 'A-Za-z0-9._/ \n_-' | head -c 600 | sed 's/^/store:   Apple: /' || true
+            exit 1
+          }
+          isid() { [[ $1 =~ ^[A-Za-z0-9-]{1,64}$ ]] || { log "unexpected id from Apple"; exit 1; }; }
+          frame() { { printf '{"data":{"type":"%s","id":"%s","attributes":' "$1" "$2"; cat "$3"; printf '}}'; } > "$w/b"; }
+          send() {
+            if [[ $mode == write ]]; then
+              call "$1" "$2" -H 'Content-Type: application/json' --data-binary @"$w/b"
+              want "$3"
+            else
+              log "would $1 $2"
+            fi
+          }
+
+          states=PREPARE_FOR_SUBMISSION,DEVELOPER_REJECTED,METADATA_REJECTED,REJECTED
+          call GET "/v1/apps/$app/appStoreVersions?filter%5Bplatform%5D=IOS&filter%5BappVersionState%5D=$states&fields%5BappStoreVersions%5D=versionString&limit=5"
+          want 200
+          count=$(jqn "$w/r" '.data | length')
+          if [[ $count == 0 ]]; then
+            log "no store version is being prepared: create $ver in App Store Connect, then push the listing again"
+            exit 1
+          fi
+          [[ $count == 1 ]] || { log "$count store versions are being prepared"; exit 1; }
+          vid=$(jqn "$w/r" -er '.data[0].id | strings'); isid "$vid"
+          vstr=$(jqn "$w/r" -er '.data[0].attributes.versionString | strings')
+          if [[ $vstr != "$ver" ]]; then
+            [[ $vstr =~ ^[0-9.]{1,20}$ ]] || vstr="another number"
+            log "App Store Connect prepares $vstr and store/listing.json is for $ver, so nothing is written"
+            exit 1
+          fi
+          call GET "/v1/appStoreVersions/$vid/relationships/build"
+          want 200
+          build=$(jqn "$w/r" -r 'if .data == null then "none" elif (.data | type) == "object" then "attached" else "unknown" end')
+          if [[ $build == attached ]]; then log "a build is attached to $ver, so its listing is frozen"; exit 0; fi
+          [[ $build == none ]] || { log "cannot tell whether a build is attached to $ver"; exit 1; }
+          call GET "/v1/appStoreVersions/$vid/appStoreVersionLocalizations?filter%5Blocale%5D=en-US&fields%5BappStoreVersionLocalizations%5D=locale"
+          want 200
+          [[ $(jqn "$w/r" '.data | length') == 1 ]] || { log "$ver has no en-US localization"; exit 1; }
+          vlid=$(jqn "$w/r" -er '.data[0].id | strings'); isid "$vlid"
+          call GET "/v1/appStoreVersions/$vid/appStoreReviewDetail?fields%5BappStoreReviewDetails%5D=notes"
+          rid=""
+          if [[ $code == 200 ]]; then
+            rid=$(jqn "$w/r" -r 'if .data == null then "" else (.data.id | strings) end')
+            [[ -z $rid ]] || isid "$rid"
+          elif [[ $code != 404 ]]; then
+            want 200
+          fi
+
+          editable='.data | map(select(.attributes.state | IN("PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED")))'
+          call GET "/v1/apps/$app/appInfos?fields%5BappInfos%5D=state&limit=10"
+          want 200
+          count=$(jqn "$w/r" "$editable | length")
+          aid=""
+          if [[ $count == 1 ]]; then
+            aid=$(jqn "$w/r" -er "$editable | .[0].id | strings"); isid "$aid"
+          elif [[ $count != 0 ]]; then
+            log "$count app infos are editable"; exit 1
+          else
+            log "no app info is editable, so name, subtitle, categories and age rating stay as they are"
+          fi
+          # The age rating: every question No or None, and not made for kids (no kids age band).
+          # Questions Apple has no attribute for stay in the console.
+          age='{"advertising":false,"ageAssurance":false,"alcoholTobaccoOrDrugUseOrReferences":"NONE",
+            "contests":"NONE","gambling":false,"gamblingSimulated":"NONE","gunsOrOtherWeapons":"NONE",
+            "healthOrWellnessTopics":false,"horrorOrFearThemes":"NONE","kidsAgeBand":null,"lootBox":false,
+            "matureOrSuggestiveThemes":"NONE","medicalOrTreatmentInformation":"NONE",
+            "messagingAndChat":false,"parentalControls":false,"profanityOrCrudeHumor":"NONE",
+            "sexualContentGraphicAndNudity":"NONE","sexualContentOrNudity":"NONE","socialMedia":false,
+            "unrestrictedWebAccess":false,"userGeneratedContent":false,"violenceCartoonOrFantasy":"NONE",
+            "violenceRealistic":"NONE","violenceRealisticProlongedGraphicOrSadistic":"NONE"}'
+          if [[ -n $aid ]]; then
+            call GET "/v1/appInfos/$aid/appInfoLocalizations?filter%5Blocale%5D=en-US&fields%5BappInfoLocalizations%5D=locale"
+            want 200
+            [[ $(jqn "$w/r" '.data | length') == 1 ]] || { log "the app info has no en-US localization"; exit 1; }
+            ilid=$(jqn "$w/r" -er '.data[0].id | strings'); isid "$ilid"
+            fields=$(sudo -u nobody -- jq -rn --argjson a "$age" '$a | keys | join(",")')
+            [[ $fields =~ ^[A-Za-z,]+$ ]] || { log "unexpected age-rating fields"; exit 1; }
+            call GET "/v1/appInfos/$aid/ageRatingDeclaration?fields%5BageRatingDeclarations%5D=$fields"
+            want 200
+            arid=$(jqn "$w/r" -er '.data.id | strings'); isid "$arid"
+            jqn "$w/r" -c --argjson a "$age" \
+              '.data.attributes as $c | $a | with_entries(select($c[.key] != .value))' > "$w/age"
+            log "age rating: $(jqn "$w/age" 'length') answers to set"
+            for c in NAVIGATION UTILITIES; do call GET "/v1/appCategories/$c"; want 200; done
+          fi
+
+          frame appStoreVersions "$vid" "$d/version"
+          send PATCH "/v1/appStoreVersions/$vid" 200
+          frame appStoreVersionLocalizations "$vlid" "$d/vloc"
+          send PATCH "/v1/appStoreVersionLocalizations/$vlid" 200
+          if [[ -n $rid ]]; then
+            frame appStoreReviewDetails "$rid" "$d/review"
+            send PATCH "/v1/appStoreReviewDetails/$rid" 200
+          else
+            { printf '{"data":{"type":"appStoreReviewDetails","attributes":'; cat "$d/review"
+              printf ',"relationships":{"appStoreVersion":{"data":{"type":"appStoreVersions","id":"%s"}}}}}' "$vid"
+            } > "$w/b"
+            send POST /v1/appStoreReviewDetails 201
+          fi
+          if [[ -n $aid ]]; then
+            frame appInfoLocalizations "$ilid" "$d/iloc"
+            send PATCH "/v1/appInfoLocalizations/$ilid" 200
+            printf '{"data":{"type":"appInfos","id":"%s","relationships":{"primaryCategory":{"data":{"type":"appCategories","id":"NAVIGATION"}},"secondaryCategory":{"data":{"type":"appCategories","id":"UTILITIES"}}}}}' "$aid" > "$w/b"
+            send PATCH "/v1/appInfos/$aid" 200
+            if [[ $(jqn "$w/age" 'length') != 0 ]]; then
+              frame ageRatingDeclarations "$arid" "$w/age"
+              send PATCH "/v1/ageRatingDeclarations/$arid" 200
+            fi
+          fi
+          log "done, mode $mode"

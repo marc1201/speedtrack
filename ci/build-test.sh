@@ -4,13 +4,16 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Settings and the App Store listing link files of this repository on main, such as the privacy
-# policy, which App Review requires. A renamed file would leave its link dead.
-pages="$(grep -ohE 'blob/main/[A-Za-z0-9._/-]+' App/*.swift APP_STORE.md | sed 's|^blob/main/||' | sort -u)"
+# Settings links files of this repository on main, such as the privacy policy, which App Review
+# requires. A renamed file would leave its link dead. ci/check-store.sh does the same for the listing.
+pages="$(grep -ohE 'blob/main/[A-Za-z0-9._/-]+' App/*.swift | sed 's|^blob/main/||' | sort -u)"
 test -n "$pages"
 for page in $pages; do
   test -f "$page" || { echo "A link names $page, which is not in the repository" >&2; exit 1; }
 done
+
+# The store job's checks on store/listing.json, as its workflow file runs them.
+ci/check-store.sh
 
 xcodebuild -version
 

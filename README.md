@@ -19,5 +19,6 @@ tests and archives the Release device build on GitHub Actions.
 
 ## TestFlight
 
-Xcode Cloud builds, signs and uploads, with no key on our side. A commit to `main` that changes
-`release/testflight` starts a release. `CLAUDE.md` has the details.
+Xcode Cloud builds, signs and uploads, with no build or signing key on our side. One App Store
+Connect key with the Marketing role sets the listing text from `store/listing.json`. A commit to
+`main` that changes `release/testflight` starts a release. `CLAUDE.md` has the details.

@@ -80,8 +80,8 @@ job that holds a credential, whose steps stay inline in the workflow file.
 ## How deployment works here
 
 Here a deploy is a TestFlight build, and Xcode Cloud ships it, by Marc's decision of 2026-11-05.
-Apple builds, signs and uploads on its side. Actions only compiles and must hold no secret, and
-`ci/release-status.py` must use no credential.
+Apple builds, signs and uploads on its side. Actions compiles and holds no secret, except the store
+job below, and `ci/release-status.py` must use no credential.
 
 - **A release:** compile pushes must not deploy, so a release is a deliberate commit. Every release
   shows a new version, by Marc's word of 2026-11-07: first raise the last number of
@@ -110,7 +110,27 @@ Apple builds, signs and uploads on its side. Actions only compiles and must hold
   decision of 2026-11-12. That decision covers assistant-ios too. It is the one exception to "no click
   per release": store versions are rare, and TestFlight stays automatic. Only a build archived with
   "App Store Connect" can be submitted, as every build from 1.0.0 on is. 1.0.1 is the first store
-  version. `APP_STORE.md` records the listing and Apple's answers.
+  version. He also creates each new store version and chooses its build there: the listing key can
+  do neither. `APP_STORE.md` records Apple's answers.
+- **The store listing:** `store/listing.json` is the listing text, and the store job sets it, by
+  Marc's decision of 2026-11-13. It holds one App Store Connect key: an individual key of a
+  dedicated user with the Marketing role, limited to Speedtrack, as the secret `ASC_KEY_P8` and the
+  variable `ASC_KEY_ID` of the environment `app-store`, which only main may use. The job runs on a
+  push that changes `store/listing.json`. Its `mode` says off (nothing goes to Apple), check (it
+  only reads) or write. It writes only to the store version being prepared whose number is the
+  listing's `version`, and turns red when there is none, so Marc creates each store version before
+  its listing is pushed. It writes nothing once a build is attached, so the text Marc reads before
+  Submit stays. It sets the name, subtitle, promotional text, description, keywords, What's New,
+  review notes and copyright, the three URLs, the categories and the age rating, and never creates a
+  version, chooses a build or submits. `ci/check-store.sh` runs its checks on every push. The
+  workflow file is `.github/workflows/store.yml`, which the push token cannot write. Its reviewed
+  text waits in `store/store.yml` until Marc commits it. Every change to it goes through the
+  1201-assistant session: it reviews the text, prints it for Marc, and checks the committed hash
+  against the one it reviewed. Marc never pastes workflow text from this session. Stays in the
+  console: screenshots, App Privacy, price and availability, the App Review contact, the release
+  option and the age-rating questions Apple has no attribute for. If App Store Connect or the job's
+  log shows a change nobody made, stop and ask Marc to revoke the key under Users and Access →
+  Integrations → Individual Keys.
 
 ## How we develop here
 

@@ -16,8 +16,22 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    one. `.p8`, `.p12` and provisioning profiles never enter git.
 3. **The deployment boundary.** A deploy runs on Xcode Cloud, as Marc decided in `~/.claude/CLAUDE.md`,
    with no human step per release, and nothing deploys from the Mac or the VPS. Repository code
-   never runs next to a credential, because the VPS token can change that code. Actions holds no
-   secret: any `secrets.` reference in a workflow is HIGH. Any credential, token or auth header in
+   never runs next to a credential, because the VPS token can change that code. Actions holds one
+   secret, by Marc's decision of 2026-11-13: `secrets.ASC_KEY_P8` with `vars.ASC_KEY_ID`, of the
+   environment `app-store`, only in the step Apply of the job `apply` in
+   `.github/workflows/store.yml` (its reviewed text waits in `store/store.yml` until Marc commits
+   it). It is an individual key of a dedicated user with the Marketing role, limited to Speedtrack.
+   HIGH, in that file or its draft: any other `secrets.` reference or `secrets: inherit`; a second
+   job or step with the secret; a trigger other than a push to main, such as `workflow_dispatch`,
+   `pull_request_target`, `workflow_run` or `schedule`; a `paths` entry under `release/`; a
+   checkout, action, cache or repository code in the job; a host other than
+   `api.appstoreconnect.apple.com` in Apply, or other than this repository's file at the pushed
+   commit on `raw.githubusercontent.com` in Check; curl with `-v`, `--trace`, `-i`, `-D` or `-L`;
+   any output derived from the key or the token, in any encoding; jq run on the listing or on
+   Apple's answers as any user but `nobody`; a write outside the editable states or while a build is
+   attached; an endpoint outside the ones the file lists; a submit, a build choice, or creating or
+   renaming a version; and a wider role, a team key or another key unless Marc names it. Any other
+   `secrets.` reference in any workflow is HIGH. Any credential, token or auth header in
    `ci/release-status.py` is HIGH. Check
    every job that holds a secret against each point of "A job that holds a credential" in
    `~/.claude/CLAUDE.md`, and flag any point it misses. Flag `permissions:` wider than the job

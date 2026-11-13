@@ -1,47 +1,25 @@
 # App Store
 
-The listing and the App Store Connect answers for Speedtrack (Apple ID 6831002114). They live in
-App Store Connect, out of the push token's reach, so this file is their record: change it whenever
-the console changes. Marc's decisions of 2026-11-12 are marked as his. The listing leads with train
-and plane travel, which Marc named as the app's main use on 2026-11-12.
+The listing text lives in `store/listing.json`, and the store job sets it on the store version
+being prepared (`CLAUDE.md`, "The store listing"). The answers below live in App Store Connect, out
+of the push token's reach, so this file is their record: change it whenever the console changes.
+Marc's decisions of 2026-11-12 are marked as his. The listing leads with train and plane travel,
+which Marc named as the app's main use on 2026-11-12.
 
 ## Listing, English (U.S.)
 
-- **Name:** Speedtrack: What's my speed. This is Marc's choice. It starts with the Home Screen name,
-  "Speedtrack", because guideline 2.3.8 rejects names that don't match.
-- **Subtitle:** Train and plane speedometer
-- **Promotional text:** See how fast your train or plane is going, in km/h, mph, m/s or pace, with a
-  map that keeps working without internet. Open source: no account, no ads, no tracking.
-- **Keywords:** gps,km/h,mph,offline,flight,airplane,railway,ferry,bus,pace,map,bike,cycling,running,walking,hiking
-  (99 of 100 bytes). The name and subtitle already give "speed", "train", "plane" and
+What the texts in `store/listing.json` rest on:
+
+- **Name:** Marc's choice. It starts with the Home Screen name, "Speedtrack", because guideline
+  2.3.8 rejects names that don't match.
+- **Keywords:** at most 100 bytes. The name and subtitle already give "speed", "train", "plane" and
   "speedometer", and the store searches all three fields, so the keywords don't repeat them.
-- **Support URL:** https://github.com/marc1201/speedtrack/blob/main/SUPPORT.md
-- **Marketing URL:** https://github.com/marc1201/speedtrack
-- **Privacy policy URL:** https://github.com/marc1201/speedtrack/blob/main/PRIVACY.md
-- **Copyright:** 2026 Eins-zwei-null-eins Portugal Unipessoal, Lda
-- **Category:** Navigation, and Utilities second
-
-**Description:**
-
-```
-Speedtrack shows how fast your train or plane is going, in big numbers, with a map of where you are. Its maps keep working without internet.
-
-• Speed from GPS in km/h, mph, m/s, min/km or min/mi
-• Your top speed of the day
-• Apple Maps, or outlines of coastlines, borders, roads, railways and towns that are built into the app and need no internet
-• OpenStreetMap for the countries you download once and then use offline, so far Japan, South Korea, Portugal and Germany. Each download is checked before it is used.
-• Shows 0 when your iPhone lies still, where GPS alone would drift
-• The number turns grey when the speed is not current, and the line below it says why
-• The screen stays on while the app is open
-
-Made for train and plane travel, and also for walking, running and cycling. Do not use it while driving.
-
-No account, no ads, no analytics and no tracking. The app sends your position nowhere. Apple's map, which the app starts with, loads the area on screen from Apple; the outlines and OpenStreetMap need no connection.
-
-Speedtrack is open source under the MIT License: github.com/marc1201/speedtrack
-
-Map data © OpenStreetMap contributors, prepared by Protomaps. Outlines from Natural Earth.
-```
+- **Description:** it keeps the warning against use while driving, as Settings in the app do.
+- **URLs:** the store job sets three and no others: the repository as the marketing URL, its
+  `SUPPORT.md` as the support URL and its `PRIVACY.md` as the privacy policy URL.
+- **Copyright:** the year and Eins-zwei-null-eins Portugal Unipessoal, Lda. The job accepts no other
+  holder.
+- **Category:** Navigation, and Utilities second, set by the store job.
 
 ## Screenshots
 
@@ -52,27 +30,14 @@ an iPhone 14 Pro to 17 Pro. A Pro Max shot is 1320 x 2868, which fits the large 
 fits the required one too. If App Store Connect also asks for the large class, upload the same shots
 resized to 1320 x 2868. Show nothing that suggests use while driving, so no road under a high
 speed. A train ride as a passenger, the main use, shows it best, with the railway on the map; a walk
-works too. The map shows where the phone is, so take them away from home. A 30 to 60 second screen
-recording of the ride or walk, from "--" to a live speed, can go to App Review as an attachment.
+works too. The map shows where the phone is, so take them away from home. Marc's screenshots show
+the speed on a flight, and he sends no screen recording.
 
 ## App Review information
 
 - **Sign-in required:** no.
 - **Contact:** Marc, entered in the console only, with the phone number in international format.
-- **Notes:**
-
-```
-Speedtrack is a free GPS speedometer, made mostly for passengers on trains and planes, and also for walking, running and cycling. Unlike most speedometers it also works without internet: GPS gives the speed, world outlines are built into the app, and OpenStreetMap countries are downloaded once and checked by SHA-256. Only Apple Maps, the default map, needs a connection. A motion check holds a phone lying still at 0 instead of GPS drift. There is no sign-in, nothing to buy and no advertising. It is open source under the MIT License. Tested through TestFlight on iPhone.
-
-The speed is the one Core Location reports, so it needs precise location and movement. Indoors or standing still the number reads "--" or 0, and the line below it says why, for example "Looking for your location" or "Location found, no speed yet". Outdoors and moving, a speed shows within seconds. Location is used only while the app is on screen. If location is denied, everything except the speed keeps working.
-
-The Settings tab chooses the map: Apple Maps (online), Outlines (built into the app, no internet) or OpenStreetMap. Under OpenStreetMap, Download fetches a country's map file from our server maps.1201.de, checks its SHA-256 and then draws it without internet. The countries are Japan, South Korea, Portugal and Germany; Portugal, 91 MB, is the smallest. Outside those countries the map follows your position, so pinch out and drag to the downloaded country; the location button brings the map back to you.
-
-External services: Apple's MapKit for Apple Maps, and maps.1201.de over HTTPS for the country downloads. The links in Settings to the code on GitHub, the privacy policy, the support page and the OpenStreetMap credits open in the browser, outside the app. The app works the same in every region.
-```
-
-If a screen recording is attached, the notes end with: "A screen recording of the speed on a walk is
-attached."
+- **Notes:** in `store/listing.json`. The store job writes only the notes, never the contact.
 
 ## Answers in App Store Connect
 
@@ -91,7 +56,9 @@ attached."
 - **Age rating:** 4+. Every capability is No: parental controls, age assurance, unrestricted web
   access (links open Safari), user-generated content, social media, messaging, advertising,
   gambling, loot boxes, shared location, and dating and relationships. Every content question is
-  None. Not "Made for Kids".
+  None. Not "Made for Kids". The store job sets these answers, except shared location and dating
+  and relationships: Apple asks those from 2026-11-16 and has no attribute for them, so Marc answers
+  them in the console.
 - **Content rights:** the app shows third-party content (OpenStreetMap, Natural Earth, Apple Maps)
   and has the rights to it.
 - **Export compliance:** answered by `ITSAppUsesNonExemptEncryption` = NO in `App/Info.plist`: the
