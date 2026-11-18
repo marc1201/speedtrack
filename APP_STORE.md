@@ -31,8 +31,11 @@ fits the required one too. If App Store Connect also asks for the large class, u
 resized to 1320 x 2868. Show nothing that suggests use while driving, so no road under a high
 speed. A train ride as a passenger, the main use, shows it best, with the railway on the map; a walk
 works too. The map shows where the phone is, so take them away from home. Marc's screenshots show
-the speed on a flight, and he sends no screen recording. The four for 1.0.2 come from an earlier
-build, before the map got half the screen; new ones from 1.0.2 would match the app exactly.
+the speed on a flight, and he sends no screen recording. His iPhone saves 1320 x 2868 screenshots
+as 16-bit PNG. On 2026-11-18 App Store Connect refused those for the iPhone slot ("File dimensions
+are invalid") and took them converted to 1206 x 2622, 8-bit with the Display P3 profile kept. They
+come from an earlier build, before the map got half the screen; new ones from 1.0.2 would match the
+app exactly.
 
 ## App Review information
 
@@ -73,4 +76,4 @@ build, before the map got half the screen; new ones from 1.0.2 would match the a
   to 1.0.2 on 2026-11-18, because the Build list offers only builds of the same number.
 - **Version release:** Apple's default, released as soon as App Review approves it.
 - **Submitting:** Marc taps Submit for Review for each store version, by his decision. See
-  `CLAUDE.md`.
+  `CLAUDE.md`. He submitted 1.0.2 (12) on 2026-11-18.

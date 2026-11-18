@@ -18,12 +18,12 @@ Built on 2026-11-11: Settings downloads Japan, South Korea, Portugal and Germany
 
 Put off by Marc on 2026-11-10 and asked for on 2026-11-12. Done: the privacy policy and support
 page, linked from Settings, the open-source introduction, the GPS requirement, the listing, which
-the store job wrote, and most of Marc's answers in App Store Connect, recorded in `APP_STORE.md`.
+the store job wrote, and Marc's answers in App Store Connect, recorded in `APP_STORE.md`.
 Marc decided on 2026-11-12: the store name "Speedtrack: What's my speed", screenshots from his
 iPhone, non-trader, and a Submit for Review tap per store version. Open:
 
-- **Submit:** Marc uploads the four screenshots from his iPhone and taps Submit for Review for
-  1.0.2 (12). Then Apple's verdict; a rejection's reason and its fix go into `APP_STORE.md`.
+- **App Review:** Marc submitted 1.0.2 (12) on 2026-11-18. Next is Apple's verdict; a rejection's
+  reason and its fix go into `APP_STORE.md`.
 - **Version 1.0.2:** the first store version, because it gives the map and the numbers the same
   height, which Marc asked for on 2026-11-18. 1.0.1 reached TestFlight on 2026-11-13 (3871a94) and
   1.0.0 on 2026-11-12 (815eb03); neither was submitted.
