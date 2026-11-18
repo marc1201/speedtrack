@@ -26,12 +26,10 @@ screenshots from his iPhone, non-trader, and a Submit for Review tap per store v
 - **Version 1.0.2:** the first store version, because it gives the map and the numbers the same
   height, which Marc asked for on 2026-11-18. 1.0.1 reached TestFlight on 2026-11-13 (3871a94) and
   1.0.0 on 2026-11-12 (815eb03); neither is submitted.
-- **Listing key:** Marc said go on 2026-11-13, "along the rules aligned with the assistant".
-  `store/listing.json` holds the listing, and the store job's text waits in `store/store.yml`,
-  which the 1201-assistant session passed on 2026-11-13. Next: Marc commits it as
-  `.github/workflows/store.yml`, the 1201-assistant session checks that the committed file matches
-  the reviewed one, Marc creates the key, and the listing goes from mode off to check to write.
-  Then `store/store.yml` goes, and `ci/check-store.sh` reads the workflow file.
+- **Listing key:** live since 2026-11-18, by Marc's go of 2026-11-13, "along the rules aligned with
+  the assistant". He committed the store workflow (ba7a8c7) and its fix for his key's 12-character
+  ID (2d0eb8e), and the 1201-assistant session matched both to the text it reviewed. The job wrote
+  the listing from `store/listing.json` on 2026-11-18 (store run 44329499449).
 - **Screenshots:** Marc took them on a flight. He uploads them himself, because the Marketing role
   cannot.
 - **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
