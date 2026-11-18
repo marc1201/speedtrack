@@ -13,21 +13,20 @@ struct ContentView: View {
             TimelineView(.periodic(from: .now, by: 1)) { timeline in
                 let speed = monitor.speedometer.shown(in: unit, at: timeline.date)
                 VStack(spacing: 8) {
-                    // The speed comes first, so it may take the whole width. A label too wide for it,
-                    // such as a pace, shrinks to fit. A shrunk label is also lower, and the map below
-                    // would change size with the unit or the speed, so a hidden digit at full size
-                    // keeps the height.
+                    // The speed comes first, so it may take the whole width, and it shrinks to the
+                    // height that its half leaves. A label too wide for it, such as a pace, shrinks
+                    // further and is lower, so a hidden digit keeps the height, and the lines below
+                    // do not move with the unit or the speed.
                     ZStack {
-                        // It may still shrink on a short screen, where the room gives way.
                         Text(verbatim: "0")
                             .font(Self.speedFont)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.5)
+                            .minimumScaleFactor(Self.speedMinimumScale)
                             .hidden()
                         Text(speed.label)
                             .font(Self.speedFont)
                             .monospacedDigit()
-                            .minimumScaleFactor(0.5)
+                            .minimumScaleFactor(Self.speedMinimumScale)
                             .lineLimit(1)
                             // Grey marks the last speed measured, and the line below says why no
                             // current one comes in.
@@ -59,8 +58,10 @@ struct ContentView: View {
                     .padding(.top, 16)
                 }
             }
-            // The speed keeps its full size, and the map gets the room that is left.
-            .layoutPriority(1)
+            // The numbers and the map always get the same height, by Marc's word of 2026-11-18: on
+            // a short or wide screen the speed shrinks, not the map. Both take any height offered,
+            // so the stack gives them equal shares of the room the unit picker leaves.
+            .frame(maxHeight: .infinity)
             Picker("Unit", selection: $unit) {
                 ForEach(SpeedUnit.allCases) { option in
                     Text(option.title).tag(option)
@@ -68,10 +69,10 @@ struct ContentView: View {
             }
             .pickerStyle(.segmented)
             .padding(.top, 24)
+            .padding(.bottom, 8)
             mapView
-                .frame(minHeight: 160)
+                .frame(maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .padding(.top, 8)
         }
         .padding()
         .onChange(of: scenePhase, initial: true) { _, phase in
@@ -86,6 +87,9 @@ struct ContentView: View {
     }
 
     private static let speedFont = Font.system(size: 200, weight: .bold, design: .rounded)
+    /// How far the speed may shrink to fit its half, which is shortest on the smallest iPhone with
+    /// large text. Both of its texts use it, so the hidden digit and the label fit the same height.
+    private static let speedMinimumScale: CGFloat = 0.25
 
     @ViewBuilder
     private var mapView: some View {
