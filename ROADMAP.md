@@ -16,23 +16,18 @@ Built on 2026-11-11: Settings downloads Japan, South Korea, Portugal and Germany
 
 ## App Store release
 
-Put off by Marc on 2026-11-10 and asked for on 2026-11-12. The repo part is done: the privacy policy
-and support page, linked from Settings, the open-source introduction, the GPS requirement, and the
-listing in `APP_STORE.md`. Marc decided on 2026-11-12: the store name "Speedtrack: What's my speed",
-screenshots from his iPhone, non-trader, and a Submit for Review tap per store version. Open:
+Put off by Marc on 2026-11-10 and asked for on 2026-11-12. Version 1.0.2 (12) went to App Review on
+2026-11-18. Done: the privacy policy and support page, linked from Settings, the open-source
+introduction, the GPS requirement, the listing, which the store job wrote, and Marc's answers in
+App Store Connect, all recorded in `APP_STORE.md`. Marc decided on 2026-11-12: the store name
+"Speedtrack: What's my speed", screenshots from his iPhone, non-trader, and a Submit for Review tap
+per store version. Open:
 
-- **Xcode Cloud:** done on 2026-11-12. Marc set the archive's Distribution Preparation to "App Store
-  Connect". Builds made before that can never go to the App Store.
+- **App Review:** Apple's verdict on 1.0.2. A rejection's reason and its fix go into `APP_STORE.md`.
 - **Version 1.0.2:** the first store version, because it gives the map and the numbers the same
   height, which Marc asked for on 2026-11-18. 1.0.1 reached TestFlight on 2026-11-13 (3871a94) and
-  1.0.0 on 2026-11-12 (815eb03); neither is submitted.
+  1.0.0 on 2026-11-12 (815eb03); neither was submitted.
 - **Listing key:** live since 2026-11-18, by Marc's go of 2026-11-13, "along the rules aligned with
   the assistant". He committed the store workflow (ba7a8c7) and its fix for his key's 12-character
   ID (2d0eb8e), and the 1201-assistant session matched both to the text it reviewed. The job wrote
   the listing from `store/listing.json` on 2026-11-18 (store run 44329499449).
-- **Screenshots:** Marc took them on a flight. He uploads them himself, because the Marketing role
-  cannot.
-- **Marc's one-time steps in App Store Connect:** the rest of `APP_STORE.md`, then the screenshots,
-  and a tap on Submit for Review.
-- **App Privacy:** open with Marc: "Data Not Collected" or Other Diagnostic Data, with the facts in
-  `APP_STORE.md`. He chose on 2026-11-12 to build nothing on the map server.

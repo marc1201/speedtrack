@@ -31,7 +31,9 @@ fits the required one too. If App Store Connect also asks for the large class, u
 resized to 1320 x 2868. Show nothing that suggests use while driving, so no road under a high
 speed. A train ride as a passenger, the main use, shows it best, with the railway on the map; a walk
 works too. The map shows where the phone is, so take them away from home. Marc's screenshots show
-the speed on a flight, and he sends no screen recording.
+the speed on a flight, and he sends no screen recording. He uploaded four for 1.0.2 on 2026-11-18,
+taken with an earlier build, before the map got half the screen. New ones from 1.0.2 would match
+the app exactly.
 
 ## App Review information
 
@@ -41,16 +43,14 @@ the speed on a flight, and he sends no screen recording.
 
 ## Answers in App Store Connect
 
-- **App Privacy:** open with Marc, who enters it himself. The facts: the app's own downloads leave
-  no line on the map server. Only a malformed request, which the app never sends, or a fault inside
-  the web server itself could leave an error line with an IP address, kept until the system log
-  rotates (see `PRIVACY.md`). The two answers, which the 1201-assistant session put to Marc on
-  2026-11-12:
-  - "Data Not Collected", as the server works in practice. `App/PrivacyInfo.xcprivacy` lists no
-    collected data either.
-  - Diagnostics, Other Diagnostic Data, not linked to the user, not used for tracking, for App
-    Functionality, which covers the possible fault line. The privacy manifest would then need the
-    same entry.
+- **App Privacy:** "Data Not Collected", entered by Marc on 2026-11-18, as the 1201-assistant
+  session recommended. The facts: the app's own downloads leave no line on the map server. Only a
+  malformed request, which the app never sends, or a fault inside the web server itself could leave
+  an error line with an IP address, kept until the system log rotates (see `PRIVACY.md`).
+  `App/PrivacyInfo.xcprivacy` lists no collected data either. The other answer put to Marc on
+  2026-11-12 was Diagnostics, Other Diagnostic Data, not linked to the user, not used for tracking,
+  for App Functionality, which covers the possible fault line; the privacy manifest would then need
+  the same entry, and so a new build.
 
   MapKit's data is Apple's to disclose, not the developer's.
 - **Age rating:** 4+. Every capability is No: parental controls, age assurance, unrestricted web
@@ -58,7 +58,7 @@ the speed on a flight, and he sends no screen recording.
   gambling, loot boxes, shared location, and dating and relationships. Every content question is
   None. Not "Made for Kids". The store job sets these answers, except shared location and dating
   and relationships: Apple asks those from 2026-11-16 and has no attribute for them, so Marc answers
-  them in the console.
+  them in the console. The job set the others on 2026-11-18, and Marc answered both No that day.
 - **Content rights:** the app shows third-party content (OpenStreetMap, Natural Earth, Apple Maps)
   and has the rights to it.
 - **Export compliance:** answered by `ITSAppUsesNonExemptEncryption` = NO in `App/Info.plist`: the
@@ -70,7 +70,8 @@ the speed on a flight, and he sends no screen recording.
   for the app. EU product pages say the provider has not declared itself a trader, so EU consumer
   rights do not apply.
 - **Version number:** a store version carries the `MARKETING_VERSION` of the build it ships, 1.0.2
-  for the first. App Store Connect names a new app's first version itself, usually 1.0, so Marc
-  changes the number to match before he picks the build.
+  for the first. App Store Connect named the app's first version 1.0.0 itself, and Marc changed it
+  to 1.0.2 on 2026-11-18, because the Build list offers only builds of the same number.
+- **Version release:** Apple's default, released as soon as App Review approves it.
 - **Submitting:** Marc taps Submit for Review for each store version, by his decision. See
-  `CLAUDE.md`.
+  `CLAUDE.md`. 1.0.2 (12) went to review on 2026-11-18.
