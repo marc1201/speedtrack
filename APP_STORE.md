@@ -6,6 +6,10 @@ of the push token's reach, so this file is their record: change it whenever the 
 Marc's decisions of 2026-11-12 are marked as his. The listing leads with train and plane travel,
 which Marc named as the app's main use on 2026-11-12.
 
+The store job has set the listing since 2026-11-18 (store run 44329499449). Marc committed its
+workflow as ba7a8c7, then as 2d0eb8e, which allows his key's 12-character ID, and the
+1201-assistant session matched both to the text it reviewed.
+
 ## Listing, English (U.S.)
 
 What the texts in `store/listing.json` rest on:
@@ -76,4 +80,5 @@ app exactly.
   to 1.0.2 on 2026-11-18, because the Build list offers only builds of the same number.
 - **Version release:** Apple's default, released as soon as App Review approves it.
 - **Submitting:** Marc taps Submit for Review for each store version, by his decision. See
-  `CLAUDE.md`. He submitted 1.0.2 (12) on 2026-11-18.
+  `CLAUDE.md`. He submitted 1.0.2 (12) on 2026-11-18, and App Review approved it at 21:43 UTC the
+  same day.
