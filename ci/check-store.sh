@@ -31,7 +31,8 @@ done
 
 dup="$(extract DUP)"
 prog="$(extract LISTING)"
-test -n "$dup" && test -n "$prog"
+test -n "$dup"
+test -n "$prog"
 jq --version
 
 passes() {
