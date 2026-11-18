@@ -109,7 +109,7 @@ job below, and `ci/release-status.py` must use no credential.
   Review in App Store Connect, on the web or in its iPhone app, once per store version, by his
   decision of 2026-11-12. That decision covers assistant-ios too. It is the one exception to "no click
   per release": store versions are rare, and TestFlight stays automatic. Only a build archived with
-  "App Store Connect" can be submitted, as every build from 1.0.0 on is. 1.0.1 is the first store
+  "App Store Connect" can be submitted, as every build from 1.0.0 on is. 1.0.2 is the first store
   version. He also creates each new store version and chooses its build there: the listing key can
   do neither. `APP_STORE.md` records Apple's answers.
 - **The store listing:** `store/listing.json` is the listing text, and the store job sets it, by

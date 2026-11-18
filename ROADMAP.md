@@ -23,9 +23,9 @@ screenshots from his iPhone, non-trader, and a Submit for Review tap per store v
 
 - **Xcode Cloud:** done on 2026-11-12. Marc set the archive's Distribution Preparation to "App Store
   Connect". Builds made before that can never go to the App Store.
-- **Version 1.0.1:** the first store version, because its Settings name train and plane travel as
-  the main use, by Marc's word of 2026-11-12. 1.0.0 reached TestFlight on 2026-11-12 (815eb03) with
-  the older text and is not submitted.
+- **Version 1.0.2:** the first store version, because it gives the map and the numbers the same
+  height, which Marc asked for on 2026-11-18. 1.0.1 reached TestFlight on 2026-11-13 (3871a94) and
+  1.0.0 on 2026-11-12 (815eb03); neither is submitted.
 - **Listing key:** Marc said go on 2026-11-13, "along the rules aligned with the assistant".
   `store/listing.json` holds the listing, and the store job's text waits in `store/store.yml`,
   which the 1201-assistant session passed on 2026-11-13. Next: Marc commits it as
