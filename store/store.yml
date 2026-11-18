@@ -141,7 +141,8 @@ jobs:
           trap 'rm -rf "$w"' EXIT
           printf '%s\n' "${ASC_KEY_P8:-}" > "$w/key"
           unset ASC_KEY_P8
-          [[ ${ASC_KEY_ID:-} =~ ^[A-Z0-9]{10}$ ]] || { log "the variable ASC_KEY_ID is missing or malformed"; exit 1; }
+          # Apple's examples show key ids of 10 characters, and Marc's individual key has 12.
+          [[ ${ASC_KEY_ID:-} =~ ^[A-Z0-9]{10,12}$ ]] || { log "the variable ASC_KEY_ID is missing or malformed"; exit 1; }
           grep -q -- '-----BEGIN PRIVATE KEY-----' "$w/key" \
             || { log "the secret ASC_KEY_P8 is missing or not a key"; exit 1; }
 
