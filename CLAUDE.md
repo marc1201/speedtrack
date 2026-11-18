@@ -128,8 +128,9 @@ job below, and `ci/release-status.py` must use no credential.
   two questions Apple asks from 2026-11-16, shared location and dating and relationships, which stay
   Marc's. It sets nothing else, and never creates a version, chooses a build or submits.
   `ci/check-store.sh` runs its checks on every push. The workflow file is
-  `.github/workflows/store.yml`, which the push token cannot write. Its reviewed text waits in
-  `store/store.yml` until Marc commits it. Every change to it goes through the 1201-assistant
+  `.github/workflows/store.yml`, which the push token cannot write. The draft of its next version
+  waits in `store/store.yml` until Marc commits it. Meanwhile `ci/check-store.sh` tests the draft,
+  and checks the listing against both files. Every change to it goes through the 1201-assistant
   session: it reviews the text, prints it for Marc, and checks the committed hash against the one it
   reviewed. Marc never pastes workflow text from this session. Stays in the console: screenshots,
   App Privacy, price and availability, the App Review contact, the release option and those two

@@ -6,15 +6,20 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-workflow=.github/workflows/store.yml
-[ -f "$workflow" ] || workflow=store/store.yml # the reviewed draft, until Marc has committed it
+# While store/store.yml holds the draft of the workflow's next version, the checks below test that
+# draft, which Marc commits next. The listing must also pass the committed file, which the job runs
+# until then.
+committed=.github/workflows/store.yml
+workflow=$committed
+[ -f store/store.yml ] && workflow=store/store.yml
 
-# The text of the heredoc that starts with <<'MARKER' and ends at a line holding only MARKER.
+# The text of the heredoc that starts with <<'MARKER' and ends at a line holding only MARKER, in
+# the file given second, or in the workflow tested.
 extract() {
   awk -v m="$1" -v q="'" '
     index($0, "<<" q m q) { on = 1; next }
     on && NF == 1 && $1 == m { exit }
-    on { print }' "$workflow"
+    on { print }' "${2:-$workflow}"
 }
 # The listing links files of this repository on main, which the job names as fixed URLs. A renamed
 # file would leave the store page's link dead.
@@ -39,6 +44,14 @@ trap 'rm -rf "$t"' EXIT
 
 # The listing itself passes, and each part comes out as the job sends it.
 passes store/listing.json || { echo "store/listing.json fails the store job's checks" >&2; exit 1; }
+if [ "$workflow" != "$committed" ] && [ -f "$committed" ]; then
+  cdup="$(extract DUP "$committed")"
+  cprog="$(extract LISTING "$committed")"
+  { [ -n "$cdup" ] && [ -n "$cprog" ] &&
+      jq -en --stream "$cdup" < store/listing.json > /dev/null 2>&1 &&
+      jq -er --arg part meta "$cprog" < store/listing.json > /dev/null 2>&1; } ||
+    { echo "store/listing.json fails the committed store job's checks" >&2; exit 1; }
+fi
 jq -er --arg part meta "$prog" < store/listing.json | grep -Eq '^(off|check|write) [0-9]+[.][0-9]+[.][0-9]+$'
 for part in version vloc iloc review; do
   jq -ec --arg part "$part" "$prog" < store/listing.json > "$t/$part"
@@ -80,6 +93,9 @@ an unknown mode|.mode = "yes"
 another domain|.notes += " See evil.com."
 a lookalike repository|.description += " github.com/marc12O1/speedtrack"
 a domain after the repository's name|.description += " github.com/marc1201/speedtrack.com"
+a domain ending in the repository's host|.description += " evilgithub.com/marc1201/speedtrack"
+a domain ending in the map server's name|.notes += " evilmaps.1201.de"
+an IP address|.notes += " 192.0.2.1"
 a URL scheme|.description += " https://example"
 a www address|.promotionalText = "www.speedtrack"
 another copyright holder|.copyright = "2026 Someone Else"

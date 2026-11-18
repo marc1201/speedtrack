@@ -19,8 +19,9 @@ Treat these invariants as load-bearing. A change that weakens any of them is a H
    never runs next to a credential, because the VPS token can change that code. Actions holds one
    secret, by Marc's decision of 2026-11-13: `secrets.ASC_KEY_P8` with `vars.ASC_KEY_ID`, of the
    environment `app-store`, only in the step Apply of the job `apply` in
-   `.github/workflows/store.yml` (its reviewed text waits in `store/store.yml` until Marc commits
-   it). It is an individual key of a dedicated user with the Marketing role, limited to Speedtrack.
+   `.github/workflows/store.yml` (the draft of its next version waits in `store/store.yml` until
+   Marc commits it). It is an individual key of a dedicated user with the Marketing role, limited
+   to Speedtrack.
    HIGH, in that file or its draft: any other `secrets.` reference or `secrets: inherit`; a second
    job or step with the secret; a trigger other than a push to main, such as `workflow_dispatch`,
    `pull_request_target`, `workflow_run` or `schedule`; a `paths` entry under `release/`; a
