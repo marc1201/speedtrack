@@ -133,9 +133,9 @@ job below, and `ci/release-status.py` must use no credential.
   draft and checks the listing against both. Every change to it goes through the 1201-assistant
   session: it reviews the text, prints it for Marc, and checks the committed hash against the one it
   reviewed. Marc never pastes workflow text from this session. Stays in the console: screenshots,
-  App Privacy, price and availability, the App Review contact, the release option and those two
-  age-rating questions. If App Store Connect or the job's log shows a change nobody made, stop and
-  ask Marc to revoke the key under Users and Access → Integrations → Individual Keys.
+  App Privacy, price and availability, the App Review contact, content rights, the release option
+  and those two age-rating questions. If App Store Connect or the job's log shows a change nobody
+  made, stop and ask Marc to revoke the key under Users and Access → Integrations → Individual Keys.
 
 ## How we develop here
 
