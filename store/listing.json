@@ -1,5 +1,5 @@
 {
-  "mode": "off",
+  "mode": "check",
   "version": "1.0.2",
   "name": "Speedtrack: What's my speed",
   "subtitle": "Train and plane speedometer",
